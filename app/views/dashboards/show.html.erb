@@ -1,0 +1,85 @@
+<% content_for :title, "Dashboard" %>
+<%= render "shared/page_header", title: "Good #{Time.current.hour < 12 ? 'morning' : 'afternoon'}, #{current_user.first_name}", subtitle: l(Time.zone.today, format: "%A, %B %-d") do %>
+  <%= link_to "New job", new_job_path, class: "btn-primary" %>
+<% end %>
+
+<div class="grid grid-cols-2 gap-4 lg:grid-cols-4 mb-6">
+  <% [ [ "Jobs today", @counts[:today], schedule_path ],
+       [ "In the field now", @counts[:in_field], jobs_path(status: "in_progress") ],
+       [ "Waiting to schedule", @counts[:unscheduled], jobs_path(status: "unscheduled") ],
+       [ "Completed this week", @counts[:completed_week], jobs_path(status: "completed") ] ].each do |label, value, path| %>
+    <%= link_to path, class: "card card-body hover:ring-brand-600 transition" do %>
+      <div class="text-sm text-slate-500"><%= label %></div>
+      <div class="mt-1 text-3xl font-semibold tabular-nums"><%= value %></div>
+    <% end %>
+  <% end %>
+</div>
+
+<div class="grid gap-6 lg:grid-cols-3">
+  <section class="card lg:col-span-2">
+    <div class="flex items-center justify-between border-b border-slate-200 px-5 py-3">
+      <h2 class="font-semibold">Today's route</h2>
+      <%= link_to "Open schedule →", schedule_path, class: "text-sm text-brand-600" %>
+    </div>
+    <% if @today_jobs.any? %>
+      <ul class="divide-y divide-slate-100">
+        <% @today_jobs.each do |job| %>
+          <li>
+            <%= link_to job, class: "flex items-center gap-4 px-5 py-3 hover:bg-slate-50" do %>
+              <div class="w-20 shrink-0 text-sm tabular-nums text-slate-500"><%= job.scheduled_at.strftime("%-l:%M %P") %></div>
+              <div class="min-w-0 flex-1">
+                <div class="font-medium truncate"><%= job.customer.name %> <span class="text-slate-400 font-normal">· <%= job.appliance %></span></div>
+                <div class="text-sm text-slate-500"><%= tech_dot(job.technician) %></div>
+              </div>
+              <%= status_badge(job.status) %>
+            <% end %>
+          </li>
+        <% end %>
+      </ul>
+    <% else %>
+      <p class="px-5 py-8 text-center text-sm text-slate-500">Nothing on the books today.</p>
+    <% end %>
+  </section>
+
+  <div class="space-y-6">
+    <section class="card card-body">
+      <h2 class="font-semibold mb-3">Technician load today</h2>
+      <ul class="space-y-2.5">
+        <% @technicians.each do |tech| %>
+          <% count = @tech_load.fetch(tech.id, 0) %>
+          <li class="text-sm">
+            <div class="flex justify-between mb-1"><%= tech_dot(tech) %><span class="tabular-nums text-slate-500"><%= pluralize(count, "job") %></span></div>
+            <div class="h-1.5 rounded-full bg-slate-100"><div class="h-1.5 rounded-full" style="width: <%= [ count * 20, 100 ].min %>%; background: <%= tech.color %>"></div></div>
+          </li>
+        <% end %>
+      </ul>
+    </section>
+
+    <section class="card card-body">
+      <h2 class="font-semibold mb-3">Lead sources, last 30 days</h2>
+      <% total = @sources.sum(&:last) %>
+      <% if total.zero? %>
+        <p class="text-sm text-slate-500">No new jobs yet.</p>
+      <% else %>
+        <ul class="space-y-2 text-sm">
+          <% @sources.each do |source, count| %>
+            <li class="flex justify-between"><span><%= source_label(source) %></span><span class="tabular-nums text-slate-500"><%= count %> · <%= number_to_percentage(count * 100.0 / total, precision: 0) %></span></li>
+          <% end %>
+        </ul>
+      <% end %>
+    </section>
+
+    <section class="card card-body">
+      <h2 class="font-semibold mb-3">Waiting to schedule</h2>
+      <% if @unscheduled.any? %>
+        <ul class="space-y-2 text-sm">
+          <% @unscheduled.each do |job| %>
+            <li><%= link_to job.customer.name, job, class: "font-medium hover:underline" %> <span class="text-slate-500">· <%= job.appliance %> · <%= time_ago_in_words(job.created_at) %> ago</span> <%= priority_badge(job) %></li>
+          <% end %>
+        </ul>
+      <% else %>
+        <p class="text-sm text-slate-500">All caught up.</p>
+      <% end %>
+    </section>
+  </div>
+</div>

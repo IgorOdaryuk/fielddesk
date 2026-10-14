@@ -1,0 +1,8 @@
+<%= form_with model: [ customer, property ], class: "card card-body space-y-5 max-w-2xl" do |f| %>
+  <%= render "shared/errors", record: property %>
+  <%= render "properties/fields", f: f %>
+  <div class="flex gap-2">
+    <%= f.submit property.new_record? ? "Add address" : "Save address", class: "btn-primary" %>
+    <%= link_to "Cancel", customer, class: "btn-secondary" %>
+  </div>
+<% end %>

@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html class="h-full bg-slate-50">
+  <head>
+    <title><%= content_for?(:title) ? "#{yield(:title)} · FieldDesk" : "FieldDesk" %></title>
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="application-name" content="FieldDesk">
+    <meta name="mobile-web-app-capable" content="yes">
+    <%= csrf_meta_tags %>
+    <%= csp_meta_tag %>
+    <%= yield :head %>
+    <link rel="icon" href="/icon.svg" type="image/svg+xml">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <%= stylesheet_link_tag "tailwind", "data-turbo-track": "reload" %>
+    <%= javascript_importmap_tags %>
+  </head>
+
+  <body class="h-full font-sans text-slate-900 antialiased">
+    <% if current_user&.staff? %>
+      <div class="flex min-h-full">
+        <aside class="hidden md:flex md:w-60 md:flex-col bg-slate-900 px-3 py-5 gap-1 fixed inset-y-0">
+          <%= link_to root_path, class: "px-3 mb-6 flex items-center gap-2 text-white font-semibold text-lg" do %>
+            <span class="grid size-8 place-items-center rounded-lg bg-brand-600">FD</span> FieldDesk
+          <% end %>
+          <%= nav_link "Dashboard", dashboard_path %>
+          <%= nav_link "Schedule", schedule_path %>
+          <%= nav_link "Jobs", jobs_path, active: controller_name == "jobs" %>
+          <%= nav_link "Customers", customers_path, active: controller_name.in?(%w[customers properties]) %>
+          <% if current_user.admin? %>
+            <div class="mt-4 mb-1 px-3 text-xs uppercase tracking-wide text-slate-500">Admin</div>
+            <%= nav_link "Team", users_path, active: controller_name == "users" %>
+            <%= nav_link "Audit log", audit_logs_path %>
+          <% end %>
+          <div class="mt-auto px-3 text-sm text-slate-400">
+            <div class="text-slate-200 font-medium"><%= current_user.name %></div>
+            <div class="capitalize"><%= current_user.role %></div>
+            <%= button_to "Sign out", session_path, method: :delete, class: "mt-2 text-slate-400 hover:text-white cursor-pointer" %>
+          </div>
+        </aside>
+
+        <div class="flex-1 md:pl-60 min-w-0">
+          <nav class="md:hidden flex gap-1 overflow-x-auto bg-slate-900 px-3 py-2">
+            <%= nav_link "Dashboard", dashboard_path %>
+            <%= nav_link "Schedule", schedule_path %>
+            <%= nav_link "Jobs", jobs_path %>
+            <%= nav_link "Customers", customers_path %>
+            <% if current_user.admin? %><%= nav_link "Team", users_path %><% end %>
+          </nav>
+          <main class="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8">
+            <%= render "shared/flash" %>
+            <%= yield %>
+          </main>
+        </div>
+      </div>
+    <% else %>
+      <header class="sticky top-0 z-10 bg-slate-900 text-white">
+        <div class="mx-auto flex max-w-2xl items-center justify-between px-4 py-3">
+          <%= link_to "My jobs", my_jobs_path, class: "font-semibold" %>
+          <div class="flex items-center gap-3 text-sm">
+            <span class="text-slate-300"><%= current_user&.first_name %></span>
+            <%= button_to "Sign out", session_path, method: :delete, class: "text-slate-400 hover:text-white cursor-pointer" if current_user %>
+          </div>
+        </div>
+      </header>
+      <main class="mx-auto max-w-2xl px-4 py-5">
+        <%= render "shared/flash" %>
+        <%= yield %>
+      </main>
+    <% end %>
+  </body>
+</html>

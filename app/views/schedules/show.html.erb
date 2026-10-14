@@ -1,0 +1,57 @@
+<% content_for :title, "Schedule" %>
+<%= render "shared/page_header", title: "Schedule", subtitle: l(@date, format: "%A, %B %-d, %Y") do %>
+  <%= link_to "← Prev", schedule_path(date: @date - 1), class: "btn-secondary" %>
+  <%= link_to "Today", schedule_path, class: "btn-secondary" %>
+  <%= link_to "Next →", schedule_path(date: @date + 1), class: "btn-secondary" %>
+<% end %>
+
+<% hours = (7..19).to_a %>
+<% px_per_hour = 64 %>
+<div class="card overflow-x-auto">
+  <div class="grid min-w-[720px]" style="grid-template-columns: 4rem repeat(<%= [ @technicians.size, 1 ].max %>, minmax(11rem, 1fr));">
+    <div class="border-b border-slate-200"></div>
+    <% @technicians.each do |tech| %>
+      <div class="border-b border-l border-slate-200 px-3 py-2.5 text-sm font-medium"><%= tech_dot(tech) %></div>
+    <% end %>
+
+    <div class="relative" style="height: <%= hours.size * px_per_hour %>px">
+      <% hours.each_with_index do |hour, i| %>
+        <div class="absolute right-2 text-xs text-slate-400 <%= i.zero? ? 'translate-y-0.5' : '-translate-y-2' %>" style="top: <%= i * px_per_hour %>px"><%= Time.zone.parse("#{hour}:00").strftime("%-l %P") %></div>
+      <% end %>
+    </div>
+
+    <% @technicians.each do |tech| %>
+      <div class="relative border-l border-slate-200" style="height: <%= hours.size * px_per_hour %>px">
+        <% hours.each_with_index do |_, i| %>
+          <div class="absolute inset-x-0 border-t border-slate-100" style="top: <%= i * px_per_hour %>px"></div>
+        <% end %>
+        <% Array(@jobs_by_tech[tech.id]).each do |job| %>
+          <% start = job.scheduled_at.hour + job.scheduled_at.min / 60.0 - hours.first %>
+          <%= link_to job, class: "absolute inset-x-1 overflow-hidden rounded-lg px-2 py-1.5 text-xs text-white shadow-sm hover:brightness-110 #{'opacity-60' if job.completed?}",
+                style: "top: #{[ start, 0 ].max * px_per_hour}px; height: #{job.duration_minutes / 60.0 * px_per_hour - 2}px; background: #{tech.color}" do %>
+            <div class="font-semibold truncate"><%= job.scheduled_at.strftime("%-l:%M") %> <%= job.customer.name %></div>
+            <div class="truncate opacity-90"><%= job.appliance %> · <%= job.property.city %></div>
+            <div class="truncate opacity-90"><%= job.status.humanize %></div>
+          <% end %>
+        <% end %>
+      </div>
+    <% end %>
+  </div>
+</div>
+
+<% if (orphans = Array(@jobs_by_tech[nil])).any? %>
+  <p class="mt-4 text-sm text-amber-700">Booked for this day without a technician: <%= safe_join(orphans.map { link_to _1.number, _1, class: "underline" }, ", ") %></p>
+<% end %>
+
+<section class="card card-body mt-6">
+  <h2 class="font-semibold mb-3">Waiting to schedule (<%= @unscheduled.size %>)</h2>
+  <div class="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+    <% @unscheduled.each do |job| %>
+      <%= link_to edit_job_path(job), class: "rounded-lg ring-1 ring-slate-200 px-3 py-2 text-sm hover:ring-brand-600" do %>
+        <div class="font-medium"><%= job.customer.name %> <%= priority_badge(job) %></div>
+        <div class="text-slate-500"><%= job.appliance %> · waiting <%= time_ago_in_words(job.created_at) %></div>
+      <% end %>
+    <% end %>
+  </div>
+  <% if @unscheduled.empty? %><p class="text-sm text-slate-500">Nothing waiting.</p><% end %>
+</section>

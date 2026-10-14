@@ -1,0 +1,44 @@
+<% content_for :title, @job.number %>
+<%= render "shared/page_header", title: @job.title, subtitle: "Created #{l(@job.created_at, format: '%b %-d, %Y')}#{" by #{@job.created_by.name}" if @job.created_by}" do %>
+  <% if policy(@job).edit? %><%= link_to "Edit", edit_job_path(@job), class: "btn-secondary" %><% end %>
+<% end %>
+
+<div class="grid gap-6 lg:grid-cols-3">
+  <div class="space-y-6 lg:col-span-2">
+    <section class="card card-body">
+      <div class="flex flex-wrap items-center gap-2 mb-4"><%= status_badge(@job.status) %> <%= priority_badge(@job) %>
+        <% if @job.canceled? %><span class="text-sm text-slate-500">Reason: <%= @job.cancel_reason %></span><% end %>
+      </div>
+      <dl class="grid gap-4 sm:grid-cols-2 text-sm">
+        <div><dt class="text-slate-500">Problem</dt><dd class="mt-0.5"><%= simple_format(@job.problem, {}, wrapper_tag: "span") %></dd></div>
+        <div><dt class="text-slate-500">Appliance</dt><dd class="mt-0.5"><%= [ @job.brand, @job.appliance ].compact_blank.join(" ") %><%= " · model #{@job.model_number}" if @job.model_number.present? %></dd></div>
+        <div><dt class="text-slate-500">Window</dt><dd class="mt-0.5"><%= job_window(@job) %></dd></div>
+        <div><dt class="text-slate-500">Technician</dt><dd class="mt-0.5"><%= tech_dot(@job.technician) %></dd></div>
+        <% if @job.started_at %><div><dt class="text-slate-500">Started</dt><dd class="mt-0.5"><%= l(@job.started_at, format: "%b %-d, %-l:%M %P") %></dd></div><% end %>
+        <% if @job.completed_at %><div><dt class="text-slate-500">Completed</dt><dd class="mt-0.5"><%= l(@job.completed_at, format: "%b %-d, %-l:%M %P") %></dd></div><% end %>
+      </dl>
+      <div class="mt-5 border-t border-slate-100 pt-4"><%= render "jobs/transitions", job: @job %></div>
+    </section>
+
+    <%= render "jobs/notes", job: @job, note: @note %>
+    <%= render "jobs/photos", job: @job %>
+  </div>
+
+  <div class="space-y-6">
+    <section class="card card-body text-sm space-y-3">
+      <h2 class="font-semibold text-base">Customer</h2>
+      <div><%= link_to @job.customer.name, @job.customer, class: "font-medium hover:underline" %><br><%= phone_link(@job.customer.phone) %></div>
+      <div><%= link_to @job.property.one_line, @job.property.maps_url, target: "_blank", rel: "noopener", class: "text-brand-600 hover:underline" %></div>
+      <% if @job.property.access_notes.present? %><div class="rounded-lg bg-amber-50 px-3 py-2 text-amber-800"><%= @job.property.access_notes %></div><% end %>
+    </section>
+
+    <section class="card card-body">
+      <h2 class="font-semibold mb-3">History</h2>
+      <%= render "audit_logs/timeline", logs: @history %>
+    </section>
+
+    <% if policy(@job).destroy? %>
+      <%= button_to "Delete job", @job, method: :delete, form: { data: { turbo_confirm: "Delete #{@job.number}?" } }, class: "btn-danger" %>
+    <% end %>
+  </div>
+</div>

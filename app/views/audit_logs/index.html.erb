@@ -1,0 +1,35 @@
+<% content_for :title, "Audit log" %>
+<%= render "shared/page_header", title: "Audit log", subtitle: "Every sign-in, failed sign-in, denied access and data change. Customer phone and email values are never written here." %>
+
+<%= form_with url: audit_logs_path, method: :get, class: "mb-4 flex flex-wrap gap-2" do |f| %>
+  <%= f.select :user_id, @users.map { [ _1.name, _1.id ] }, { include_blank: "Anyone", selected: params[:user_id] }, class: "input w-auto" %>
+  <%= f.select :action_prefix, [ [ "Sign-ins", "session." ], [ "Jobs", "job." ], [ "Customers", "customer." ], [ "Team", "user." ], [ "Access denied", "access." ] ], { include_blank: "All events", selected: params[:action_prefix] }, class: "input w-auto" %>
+  <%= f.submit "Filter", class: "btn-secondary" %>
+<% end %>
+
+<div class="card overflow-x-auto">
+  <table class="table">
+    <thead><tr><th>When</th><th>Who</th><th>Event</th><th>Record</th><th>Changes</th><th>IP</th></tr></thead>
+    <tbody class="divide-y divide-slate-100">
+      <% @logs.each do |log| %>
+        <tr>
+          <td class="whitespace-nowrap text-slate-500"><%= l(log.created_at, format: "%b %-d %-l:%M:%S %P") %></td>
+          <td class="whitespace-nowrap"><%= log.user&.name || tag.span("—", class: "text-slate-400") %></td>
+          <td><code class="text-xs <%= 'text-red-600' if log.action.in?(%w[session.failed access.denied]) %>"><%= log.action %></code></td>
+          <td class="whitespace-nowrap text-slate-500">
+            <% if log.auditable.is_a?(Job) %><%= link_to log.auditable.number, log.auditable, class: "text-brand-600 hover:underline" %>
+            <% elsif log.auditable.is_a?(Customer) %><%= link_to log.auditable.name, log.auditable, class: "text-brand-600 hover:underline" %>
+            <% elsif log.auditable_type %><%= "#{log.auditable_type} ##{log.auditable_id}" %><% end %>
+          </td>
+          <td class="text-xs text-slate-500 max-w-md">
+            <% log.audited_changes.except("id", "password_digest").first(5).each do |field, (from, to)| %>
+              <div class="truncate"><%= field %>: <%= from.inspect %> → <%= to.inspect %></div>
+            <% end %>
+          </td>
+          <td class="whitespace-nowrap text-xs text-slate-400"><%= log.ip_address %></td>
+        </tr>
+      <% end %>
+    </tbody>
+  </table>
+</div>
+<div class="mt-4"><%= page_nav(@pagy) %></div>

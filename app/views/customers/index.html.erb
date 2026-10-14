@@ -1,0 +1,29 @@
+<% content_for :title, "Customers" %>
+<%= render "shared/page_header", title: "Customers" do %>
+  <%= link_to "New customer", new_customer_path, class: "btn-primary" %>
+<% end %>
+
+<%= form_with url: customers_path, method: :get, class: "mb-4 flex gap-2" do |f| %>
+  <%= f.search_field :q, value: params[:q], placeholder: "Name, full phone number or email", class: "input max-w-md" %>
+  <%= f.submit "Search", class: "btn-secondary" %>
+<% end %>
+
+<div class="card overflow-x-auto">
+  <table class="table">
+    <thead><tr><th>Name</th><th>Phone</th><th>Address</th><th>Source</th></tr></thead>
+    <tbody class="divide-y divide-slate-100">
+      <% @customers.each do |customer| %>
+        <tr class="hover:bg-slate-50">
+          <td><%= link_to customer.name, customer, class: "font-medium text-slate-900 hover:underline" %></td>
+          <td class="whitespace-nowrap"><%= phone_link(customer.phone) %></td>
+          <td class="text-slate-500"><%= customer.properties.first&.one_line %></td>
+          <td class="text-slate-500"><%= source_label(customer.source) %></td>
+        </tr>
+      <% end %>
+      <% if @customers.empty? %>
+        <tr><td colspan="4" class="py-10 text-center text-slate-500">No customers match.</td></tr>
+      <% end %>
+    </tbody>
+  </table>
+</div>
+<div class="mt-4"><%= page_nav(@pagy) %></div>

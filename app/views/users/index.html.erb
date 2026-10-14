@@ -1,0 +1,26 @@
+<% content_for :title, "Team" %>
+<%= render "shared/page_header", title: "Team", subtitle: "Everyone who can sign in. Deactivate people instead of deleting them, so their history stays." do %>
+  <%= link_to "Add person", new_user_path, class: "btn-primary" %>
+<% end %>
+
+<div class="card overflow-x-auto">
+  <table class="table">
+    <thead><tr><th>Name</th><th>Email</th><th>Role</th><th>Last sign-in</th><th></th></tr></thead>
+    <tbody class="divide-y divide-slate-100">
+      <% @users.each do |user| %>
+        <tr class="<%= 'opacity-50' unless user.active? %>">
+          <td class="font-medium"><%= tech_dot(user) %><%= tag.span(" (you)", class: "text-slate-400") if user == current_user %></td>
+          <td class="text-slate-500"><%= user.email_address %></td>
+          <td class="capitalize"><%= user.role %><%= " · deactivated" unless user.active? %></td>
+          <td class="text-slate-500 whitespace-nowrap"><%= user.last_sign_in_at ? "#{time_ago_in_words(user.last_sign_in_at)} ago" : "Never" %></td>
+          <td class="whitespace-nowrap text-right">
+            <%= link_to "Edit", edit_user_path(user), class: "text-brand-600 mr-3" %>
+            <% if policy(user).deactivate? %>
+              <%= button_to user.active? ? "Deactivate" : "Reactivate", toggle_active_user_path(user), method: :patch, form_class: "inline", class: "text-slate-500 hover:text-slate-800 cursor-pointer" %>
+            <% end %>
+          </td>
+        </tr>
+      <% end %>
+    </tbody>
+  </table>
+</div>

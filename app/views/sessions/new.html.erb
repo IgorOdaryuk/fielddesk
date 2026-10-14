@@ -1,0 +1,27 @@
+<h1 class="text-lg font-semibold mb-5">Sign in to your account</h1>
+
+<%= form_with url: session_url, class: "space-y-4" do |form| %>
+  <div>
+    <%= form.label :email_address, "Email", class: "label" %>
+    <%= form.email_field :email_address, required: true, autofocus: true, autocomplete: "username", value: params[:email_address], class: "input" %>
+  </div>
+  <div>
+    <%= form.label :password, class: "label" %>
+    <%= form.password_field :password, required: true, autocomplete: "current-password", maxlength: 72, class: "input" %>
+  </div>
+  <%= form.submit "Sign in", class: "btn-primary w-full" %>
+  <p class="text-center text-sm"><%= link_to "Forgot password?", new_password_path, class: "text-slate-500 hover:text-slate-700" %></p>
+<% end %>
+
+<% if ENV["DEMO_MODE"].present? || Rails.env.development? %>
+  <% content_for :below_card do %>
+    <div class="mt-6 rounded-xl bg-brand-50 p-4 text-sm text-slate-700 ring-1 ring-brand-100">
+      <p class="font-medium mb-2">Demo accounts (password <code>demo-password</code>)</p>
+      <ul class="space-y-1">
+        <li><code>admin@fielddesk.demo</code> — admin</li>
+        <li><code>dispatch@fielddesk.demo</code> — dispatcher</li>
+        <li><code>mike@fielddesk.demo</code> — technician</li>
+      </ul>
+    </div>
+  <% end %>
+<% end %>

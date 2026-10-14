@@ -3,6 +3,11 @@
 # If running the rails server then create or migrate existing database
 if [ "${@: -2:1}" == "./bin/rails" ] && [ "${@: -1:1}" == "server" ]; then
   ./bin/rails db:prepare
+
+  # One-off demo refresh: set RESEED_DEMO, deploy, then remove the variable.
+  if [ -n "$RESEED_DEMO" ]; then
+    RESEED=1 ./bin/rails db:seed
+  fi
 fi
 
 exec "${@}"

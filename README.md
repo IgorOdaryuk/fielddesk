@@ -10,6 +10,22 @@ Built with Rails 8, Hotwire and PostgreSQL. No React, no Redis, no external auth
 
 ![Dashboard](docs/screenshots/dashboard.png)
 
+## Why I built this
+
+FieldDesk is my Ruby on Rails learning project. I wanted to get back into Rails and work through what Rails 8 changed, on a real problem instead of a tutorial app.
+
+The domain is one I know from work: I do operations and marketing for home-service companies in the US, so booking jobs, dispatching technicians, getting paid on site and asking for reviews are problems I deal with every day.
+
+What I practiced along the way:
+
+- **Rails 8 defaults:** the built-in authentication generator, Solid Queue, Solid Cache and Solid Cable, Propshaft and import maps with no JavaScript build step
+- **Hotwire:** Turbo for page updates and forms, without a frontend framework
+- **Modeling a workflow:** a job status machine where the UI buttons and the server check come from one rule
+- **Security basics:** role-based access with Pundit, encrypted columns, rate limiting, an audit log
+- **Integrations behind adapters:** payments and SMS that run simulated in the demo and switch to Stripe or Twilio by configuration
+- **Testing and CI:** Minitest model and integration tests, RuboCop, Brakeman and bundler-audit on every push
+- **Shipping:** a Docker deploy tuned to cost almost nothing while idle
+
 ## What it does
 
 **For the office (admin, dispatcher)**

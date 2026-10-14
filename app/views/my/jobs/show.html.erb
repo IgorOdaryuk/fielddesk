@@ -1,0 +1,33 @@
+<% content_for :title, @job.number %>
+<%= link_to "← My jobs", my_jobs_path, class: "text-sm text-slate-500" %>
+
+<div class="mt-3 mb-4 flex items-start justify-between gap-3">
+  <div>
+    <h1 class="text-xl font-semibold"><%= @job.customer.name %></h1>
+    <p class="text-sm text-slate-500"><%= @job.number %> · <%= job_window(@job) %></p>
+  </div>
+  <%= status_badge(@job.status) %>
+</div>
+
+<section class="card card-body mb-4">
+  <%= render "jobs/transitions", job: @job, size: "btn-lg flex-1" %>
+  <% if @job.allowed_transitions_for(current_user).empty? && !@job.completed? %>
+    <p class="text-sm text-slate-500">Nothing to do yet. The office will schedule this job.</p>
+  <% end %>
+</section>
+
+<section class="card card-body mb-4 space-y-3 text-sm">
+  <div class="grid grid-cols-2 gap-2">
+    <%= link_to "Call", "tel:#{@job.customer.phone}", class: "btn-secondary btn-lg" %>
+    <%= link_to "Navigate", @job.property.maps_url, target: "_blank", rel: "noopener", class: "btn-secondary btn-lg" %>
+  </div>
+  <div><span class="text-slate-500">Address</span><br><%= @job.property.one_line %></div>
+  <% if @job.property.access_notes.present? %><div class="rounded-lg bg-amber-50 px-3 py-2 text-amber-800"><%= @job.property.access_notes %></div><% end %>
+  <div><span class="text-slate-500">Appliance</span><br><%= [ @job.brand, @job.appliance ].compact_blank.join(" ") %><%= " · model #{@job.model_number}" if @job.model_number.present? %></div>
+  <div><span class="text-slate-500">Problem</span><br><%= simple_format(@job.problem, {}, wrapper_tag: "span") %></div>
+</section>
+
+<div class="space-y-4">
+  <%= render "jobs/photos", job: @job %>
+  <%= render "jobs/notes", job: @job, note: @note %>
+</div>

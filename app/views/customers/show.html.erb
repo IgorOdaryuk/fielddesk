@@ -1,0 +1,59 @@
+<% content_for :title, @customer.name %>
+<%= render "shared/page_header", title: @customer.name, subtitle: "Customer since #{l(@customer.created_at.to_date, format: '%B %Y')} · #{source_label(@customer.source)}" do %>
+  <%= link_to "Edit", edit_customer_path(@customer), class: "btn-secondary" %>
+  <%= link_to "New job", new_job_path(customer_id: @customer.id), class: "btn-primary" %>
+<% end %>
+
+<div class="grid gap-6 lg:grid-cols-3">
+  <div class="space-y-6">
+    <section class="card card-body text-sm space-y-2">
+      <h2 class="font-semibold text-base mb-1">Contact</h2>
+      <div><span class="text-slate-500">Phone</span><br><%= phone_link(@customer.phone) %></div>
+      <div><span class="text-slate-500">Email</span><br><%= @customer.email.present? ? mail_to(@customer.email, class: "text-brand-600") : "—" %></div>
+      <% if @customer.notes.present? %><div><span class="text-slate-500">Notes</span><br><%= simple_format(@customer.notes) %></div><% end %>
+    </section>
+
+    <section class="card card-body text-sm">
+      <div class="flex items-center justify-between mb-2">
+        <h2 class="font-semibold text-base">Addresses</h2>
+        <%= link_to "Add", new_customer_property_path(@customer), class: "text-brand-600" %>
+      </div>
+      <ul class="divide-y divide-slate-100">
+        <% @customer.properties.each do |property| %>
+          <li class="py-2.5">
+            <div><%= link_to property.one_line, property.maps_url, target: "_blank", rel: "noopener", class: "hover:underline" %></div>
+            <% if property.access_notes.present? %><div class="text-slate-500 mt-0.5"><%= property.access_notes %></div><% end %>
+            <div class="mt-1 flex gap-3 text-xs">
+              <%= link_to "Edit", edit_customer_property_path(@customer, property), class: "text-slate-500 hover:text-slate-700" %>
+              <% if policy(property).destroy? %>
+                <%= button_to "Remove", customer_property_path(@customer, property), method: :delete, form: { data: { turbo_confirm: "Remove this address?" } }, class: "text-red-600 cursor-pointer" %>
+              <% end %>
+            </div>
+          </li>
+        <% end %>
+      </ul>
+    </section>
+
+    <% if policy(@customer).destroy? %>
+      <%= button_to "Delete customer", @customer, method: :delete, form: { data: { turbo_confirm: "Delete #{@customer.name}? This can't be undone." } }, class: "btn-danger" %>
+    <% end %>
+  </div>
+
+  <section class="card lg:col-span-2 overflow-x-auto">
+    <h2 class="font-semibold px-5 py-3 border-b border-slate-200">Job history</h2>
+    <table class="table">
+      <thead><tr><th>Job</th><th>When</th><th>Technician</th><th>Status</th></tr></thead>
+      <tbody class="divide-y divide-slate-100">
+        <% @jobs.each do |job| %>
+          <tr class="hover:bg-slate-50">
+            <td><%= link_to job.title, job, class: "font-medium text-slate-900 hover:underline" %></td>
+            <td class="text-slate-500 whitespace-nowrap"><%= job_window(job) %></td>
+            <td><%= tech_dot(job.technician) %></td>
+            <td><%= status_badge(job.status) %></td>
+          </tr>
+        <% end %>
+        <% if @jobs.empty? %><tr><td colspan="4" class="py-8 text-center text-slate-500">No jobs yet.</td></tr><% end %>
+      </tbody>
+    </table>
+  </section>
+</div>

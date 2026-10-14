@@ -1,0 +1,30 @@
+<% content_for :title, "Jobs" %>
+<%= render "shared/page_header", title: "Jobs" do %>
+  <%= link_to "New job", new_job_path, class: "btn-primary" %>
+<% end %>
+
+<%= form_with url: jobs_path, method: :get, class: "mb-4 flex flex-wrap gap-2" do |f| %>
+  <%= f.search_field :q, value: params[:q], placeholder: "Job #, customer, appliance, brand", class: "input max-w-xs" %>
+  <%= f.select :status, Job.statuses.keys.map { [ _1.humanize, _1 ] }, { include_blank: "Any status", selected: params[:status] }, class: "input w-auto" %>
+  <%= f.select :technician_id, @technicians.map { [ _1.name, _1.id ] }, { include_blank: "Any technician", selected: params[:technician_id] }, class: "input w-auto" %>
+  <%= f.submit "Filter", class: "btn-secondary" %>
+<% end %>
+
+<div class="card overflow-x-auto">
+  <table class="table">
+    <thead><tr><th>Job</th><th>Customer</th><th>When</th><th>Technician</th><th>Status</th></tr></thead>
+    <tbody class="divide-y divide-slate-100">
+      <% @jobs.each do |job| %>
+        <tr class="hover:bg-slate-50">
+          <td class="whitespace-nowrap"><%= link_to job.title, job, class: "font-medium text-slate-900 hover:underline" %> <%= priority_badge(job) %></td>
+          <td><%= job.customer.name %><div class="text-xs text-slate-500"><%= job.property.city %>, <%= job.property.state %></div></td>
+          <td class="whitespace-nowrap text-slate-500"><%= job_window(job) %></td>
+          <td class="whitespace-nowrap"><%= tech_dot(job.technician) %></td>
+          <td><%= status_badge(job.status) %></td>
+        </tr>
+      <% end %>
+      <% if @jobs.empty? %><tr><td colspan="5" class="py-10 text-center text-slate-500">No jobs match these filters.</td></tr><% end %>
+    </tbody>
+  </table>
+</div>
+<div class="mt-4"><%= page_nav(@pagy) %></div>

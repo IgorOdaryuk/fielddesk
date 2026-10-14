@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html class="h-full bg-slate-50">
+  <head>
+    <title>Sign in · FieldDesk</title>
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <%= csrf_meta_tags %>
+    <%= csp_meta_tag %>
+    <link rel="icon" href="/icon.svg" type="image/svg+xml">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <%= stylesheet_link_tag "tailwind", "data-turbo-track": "reload" %>
+    <%= javascript_importmap_tags %>
+  </head>
+  <body class="h-full font-sans text-slate-900 antialiased">
+    <div class="flex min-h-full flex-col justify-center px-4 py-12">
+      <div class="mx-auto w-full max-w-sm">
+        <div class="mb-8 flex items-center justify-center gap-2 text-xl font-semibold">
+          <span class="grid size-9 place-items-center rounded-lg bg-brand-600 text-white">FD</span> FieldDesk
+        </div>
+        <%= render "shared/flash" %>
+        <div class="card card-body"><%= yield %></div>
+        <%= yield :below_card %>
+      </div>
+    </div>
+  </body>
+</html>

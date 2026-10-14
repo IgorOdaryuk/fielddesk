@@ -1,0 +1,24 @@
+<%= form_with model: user, class: "card card-body space-y-5 max-w-xl" do |f| %>
+  <%= render "shared/errors", record: user %>
+  <div><%= f.label :name, class: "label" %><%= f.text_field :name, required: true, class: "input" %></div>
+  <div class="grid gap-4 sm:grid-cols-2">
+    <div><%= f.label :email_address, "Email", class: "label" %><%= f.email_field :email_address, required: true, class: "input" %></div>
+    <div><%= f.label :phone, class: "label" %><%= f.telephone_field :phone, class: "input" %></div>
+  </div>
+  <div class="grid gap-4 sm:grid-cols-2">
+    <div><%= f.label :role, class: "label" %><%= f.select :role, User.roles.keys.map { [ _1.humanize, _1 ] }, {}, class: "input" %></div>
+    <div><%= f.label :color, "Calendar color", class: "label" %><%= f.color_field :color, class: "h-10 w-20 rounded-lg ring-1 ring-slate-300" %></div>
+  </div>
+  <fieldset class="border-t border-slate-200 pt-5 space-y-4">
+    <legend class="text-sm font-semibold"><%= user.new_record? ? "Password" : "Set a new password (leave blank to keep)" %></legend>
+    <div class="grid gap-4 sm:grid-cols-2">
+      <div><%= f.label :password, class: "label" %><%= f.password_field :password, required: user.new_record?, autocomplete: "new-password", minlength: 10, maxlength: 72, class: "input" %></div>
+      <div><%= f.label :password_confirmation, "Repeat", class: "label" %><%= f.password_field :password_confirmation, required: user.new_record?, autocomplete: "new-password", maxlength: 72, class: "input" %></div>
+    </div>
+    <p class="text-xs text-slate-500">Stored as a bcrypt hash; nobody, including admins, can read it back. Changing it signs the person out everywhere.</p>
+  </fieldset>
+  <div class="flex gap-2">
+    <%= f.submit user.new_record? ? "Add person" : "Save", class: "btn-primary" %>
+    <%= link_to "Cancel", users_path, class: "btn-secondary" %>
+  </div>
+<% end %>

@@ -1,0 +1,27 @@
+<% content_for :title, "New job" %>
+<%= render "shared/page_header", title: "New job", subtitle: "Who is it for?" do %>
+  <%= link_to "New customer", new_customer_path, class: "btn-secondary" %>
+<% end %>
+
+<div class="card card-body max-w-2xl">
+  <%= form_with url: new_job_path, method: :get, class: "flex gap-2" do |f| %>
+    <%= f.search_field :q, value: params[:q], autofocus: true, placeholder: "Name, full phone number or email", class: "input" %>
+    <%= f.submit "Find", class: "btn-primary" %>
+  <% end %>
+
+  <% if params[:q].present? %>
+    <ul class="mt-4 divide-y divide-slate-100">
+      <% @customers.each do |customer| %>
+        <li>
+          <%= link_to new_job_path(customer_id: customer.id), class: "flex justify-between gap-4 py-3 hover:bg-slate-50 px-2 rounded-lg" do %>
+            <span class="font-medium"><%= customer.name %></span>
+            <span class="text-sm text-slate-500"><%= PhoneNumber.format(customer.phone) %></span>
+          <% end %>
+        </li>
+      <% end %>
+      <% if @customers.empty? %>
+        <li class="py-4 text-sm text-slate-500">No match. <%= link_to "Add them as a new customer", new_customer_path, class: "text-brand-600" %>.</li>
+      <% end %>
+    </ul>
+  <% end %>
+</div>

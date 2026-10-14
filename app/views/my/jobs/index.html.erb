@@ -1,0 +1,18 @@
+<% content_for :title, "My jobs" %>
+<h1 class="text-xl font-semibold">Today</h1>
+<p class="text-sm text-slate-500 mb-4"><%= l(Time.zone.today, format: "%A, %B %-d") %> · <%= pluralize(@today.size, "job") %></p>
+
+<div class="space-y-3">
+  <% @today.each do |job| %><%= render "my/jobs/job_card", job: job %><% end %>
+  <% if @today.empty? %><p class="card card-body text-center text-sm text-slate-500">No jobs today.</p><% end %>
+</div>
+
+<% if @upcoming.any? %>
+  <h2 class="mt-8 mb-3 font-semibold">Next 7 days</h2>
+  <div class="space-y-3"><% @upcoming.each do |job| %><%= render "my/jobs/job_card", job: job, with_day: true %><% end %></div>
+<% end %>
+
+<% if @recent.any? %>
+  <h2 class="mt-8 mb-3 font-semibold">Recently completed</h2>
+  <div class="space-y-3"><% @recent.each do |job| %><%= render "my/jobs/job_card", job: job, with_day: true %><% end %></div>
+<% end %>

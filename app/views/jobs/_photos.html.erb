@@ -1,0 +1,20 @@
+<section class="card card-body">
+  <h2 class="font-semibold mb-3">Photos</h2>
+  <% if job.photos.attached? %>
+    <div class="grid grid-cols-3 gap-2 mb-4">
+      <% job.photos.each do |photo| %>
+        <%= link_to url_for(photo), target: "_blank", rel: "noopener" do %>
+          <%= image_tag photo, loading: "lazy", class: "aspect-square w-full rounded-lg object-cover ring-1 ring-slate-200", alt: "Job photo" %>
+        <% end %>
+      <% end %>
+    </div>
+  <% else %>
+    <p class="text-sm text-slate-500 mb-4">No photos yet.</p>
+  <% end %>
+  <% if policy(job).add_photos? %>
+    <%= form_with url: job_photos_path(job), multipart: true, class: "flex flex-wrap items-center gap-2" do |f| %>
+      <%= f.file_field :photos, multiple: true, accept: "image/*", capture: "environment", class: "text-sm file:mr-3 file:rounded-lg file:border-0 file:bg-slate-100 file:px-3 file:py-2 file:text-sm file:font-medium" %>
+      <%= f.submit "Upload", class: "btn-secondary" %>
+    <% end %>
+  <% end %>
+</section>

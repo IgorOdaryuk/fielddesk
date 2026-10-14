@@ -1,0 +1,14 @@
+jane_home:
+  customer: jane
+  street: 100 Palm Ave
+  city: Tampa
+  state: FL
+  zip: "33602"
+  access_notes: Gate code 1234
+
+bob_home:
+  customer: bob
+  street: 7 Bay Dr
+  city: Clearwater
+  state: FL
+  zip: "33755"

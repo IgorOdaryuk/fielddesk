@@ -1,0 +1,18 @@
+<section class="card card-body">
+  <h2 class="font-semibold mb-3">Notes</h2>
+  <ul class="space-y-4 mb-4">
+    <% job.notes.includes(:user).each do |note| %>
+      <li class="text-sm">
+        <div class="flex items-center gap-2 text-xs text-slate-500 mb-1"><%= tech_dot(note.user) %> · <%= time_ago_in_words(note.created_at) %> ago</div>
+        <div class="rounded-lg bg-slate-50 px-3 py-2"><%= simple_format(note.body, {}, wrapper_tag: "div") %></div>
+      </li>
+    <% end %>
+    <% if job.notes.empty? %><li class="text-sm text-slate-500">No notes yet.</li><% end %>
+  </ul>
+  <% if policy(job).add_note? %>
+    <%= form_with model: note, url: job_notes_path(job), class: "space-y-2" do |f| %>
+      <%= f.text_area :body, rows: 2, required: true, placeholder: "Diagnosis, parts needed, what the customer said…", class: "input" %>
+      <%= f.submit "Add note", class: "btn-secondary" %>
+    <% end %>
+  <% end %>
+</section>

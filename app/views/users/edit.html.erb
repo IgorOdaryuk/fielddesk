@@ -1,0 +1,3 @@
+<% content_for :title, "Edit #{@user.name}" %>
+<%= render "shared/page_header", title: "Edit #{@user.name}" %>
+<%= render "form", user: @user %>

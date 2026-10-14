@@ -1,0 +1,8 @@
+<div class="grid gap-4 sm:grid-cols-6">
+  <div class="sm:col-span-4"><%= f.label :street, class: "label" %><%= f.text_field :street, class: "input" %></div>
+  <div class="sm:col-span-2"><%= f.label :unit, "Unit / apt", class: "label" %><%= f.text_field :unit, class: "input" %></div>
+  <div class="sm:col-span-3"><%= f.label :city, class: "label" %><%= f.text_field :city, class: "input" %></div>
+  <div class="sm:col-span-1"><%= f.label :state, class: "label" %><%= f.text_field :state, maxlength: 2, placeholder: "FL", class: "input uppercase" %></div>
+  <div class="sm:col-span-2"><%= f.label :zip, "ZIP", class: "label" %><%= f.text_field :zip, inputmode: "numeric", class: "input" %></div>
+  <div class="sm:col-span-6"><%= f.label :access_notes, "Gate code, parking, pets", class: "label" %><%= f.text_field :access_notes, class: "input" %></div>
+</div>

@@ -1,0 +1,3 @@
+<% content_for :title, "New address" %>
+<%= render "shared/page_header", title: "New address for #{@customer.name}" %>
+<%= render "form", customer: @customer, property: @property %>

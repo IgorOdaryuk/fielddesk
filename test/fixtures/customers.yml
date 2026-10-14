@@ -1,0 +1,10 @@
+jane:
+  name: Jane Doe
+  phone: "+18135550101"
+  email: jane@example.com
+  source: google_ads
+
+bob:
+  name: Bob Smith
+  phone: "+17275550102"
+  source: referral

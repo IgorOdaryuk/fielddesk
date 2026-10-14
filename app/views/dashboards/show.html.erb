@@ -1,3 +1,8 @@
+<% content_for :head do %>
+  <meta name="turbo-refresh-method" content="morph">
+  <meta name="turbo-refresh-scroll" content="preserve">
+<% end %>
+<%= turbo_stream_from :dispatch %>
 <% content_for :title, "Dashboard" %>
 <%= render "shared/page_header", title: "Good #{Time.current.hour < 12 ? 'morning' : 'afternoon'}, #{current_user.first_name}", subtitle: l(Time.zone.today, format: "%A, %B %-d") do %>
   <%= link_to "New job", new_job_path, class: "btn-primary" %>

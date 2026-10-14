@@ -8,6 +8,7 @@ class JobPolicy < ApplicationPolicy
   # Technicians move their own jobs through the field statuses only;
   # Job#allowed_transitions_for holds the exact rules.
   def transition?  = staff? || own?
+  def reschedule?  = staff?
   def add_note?    = staff? || own?
   def add_photos?  = staff? || own?
 

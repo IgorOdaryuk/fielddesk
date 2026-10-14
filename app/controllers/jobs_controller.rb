@@ -1,5 +1,5 @@
 class JobsController < ApplicationController
-  before_action :set_job, only: %i[ show edit update destroy transition ]
+  before_action :set_job, only: %i[ show edit update destroy transition reschedule ]
 
   def index
     authorize Job
@@ -57,6 +57,21 @@ class JobsController < ApplicationController
     redirect_back_or_to @job, notice: "#{@job.number} is now #{@job.status.humanize.downcase}."
   rescue ActiveRecord::RecordInvalid
     redirect_back_or_to @job, alert: @job.errors.full_messages.to_sentence
+  end
+
+  # Drag and drop on the schedule board. Only jobs nobody has started can move.
+  def reschedule
+    unless @job.unscheduled? || @job.scheduled?
+      return render json: { error: "#{@job.number} is #{@job.status.humanize.downcase} and can't be moved." }, status: :unprocessable_content
+    end
+
+    @job.assign_attributes(technician_id: params.require(:technician_id), scheduled_at: Time.zone.parse(params.require(:scheduled_at).to_s),
+                           status: :scheduled)
+    if @job.save
+      render json: { ok: true, message: "#{@job.number} moved to #{@job.technician.first_name} at #{@job.scheduled_at.strftime('%-l:%M %P')}." }
+    else
+      render json: { error: @job.errors.full_messages.to_sentence }, status: :unprocessable_content
+    end
   end
 
   private

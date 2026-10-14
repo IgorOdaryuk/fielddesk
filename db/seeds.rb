@@ -10,7 +10,7 @@ end
 Faker::Config.random = Random.new(42)
 srand(42)
 Current.skip_audit = true
-
+Job.suppressing_turbo_broadcasts do
 if ENV["RESEED"].present?
   [ OutboundMessage, Payment, InvoiceItem, Invoice, AuditLog, JobNote, Job, Property, Customer, Session, User ].each(&:delete_all)
   ActiveStorage::Attachment.delete_all
@@ -199,7 +199,8 @@ end
   AuditLog.create!(action: "session.failed", ip_address: "203.0.113.#{40 + i}", created_at: today.in_time_zone.change(hour: 3, min: 12 + i),
                    audited_changes: { "email_address" => [ nil, "admin@fielddesk.demo" ] })
 end
+end
 
 Current.skip_audit = false
-puts "Seeded #{User.count} users, #{Customer.count} customers, #{created} jobs, #{invoiced} invoices, " \
-     "#{OutboundMessage.count} texts. Password for every demo login: #{password}"
+puts "Seeded #{User.count} users, #{Customer.count} customers, #{Job.count} jobs, #{Invoice.count} invoices, " \
+     "#{OutboundMessage.count} texts. Password for every demo login: demo-password"

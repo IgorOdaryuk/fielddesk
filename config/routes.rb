@@ -13,6 +13,7 @@ Rails.application.routes.draw do
 
   resources :jobs do
     patch :transition, on: :member
+    patch :reschedule, on: :member
     resources :notes, only: :create, controller: "job_notes"
     resources :photos, only: :create, controller: "job_photos"
     resource :invoice, only: :create

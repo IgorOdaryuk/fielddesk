@@ -35,14 +35,19 @@ class Job < ApplicationRecord
   validates :cancel_reason, presence: true, if: :canceled?
   validate :property_belongs_to_customer
   validate :technician_is_a_technician
+  validate :technician_is_free, if: -> { technician_id && scheduled_at && !canceled? }
   validate :photos_are_images
 
   before_save :stamp_field_times
+  after_commit :refresh_dispatch_screens
   after_update_commit :notify_customer, if: -> { saved_change_to_status? }
 
   scope :open, -> { where(status: %i[unscheduled scheduled en_route in_progress]) }
   scope :on_day, ->(date) { where(scheduled_at: date.in_time_zone.all_day) }
   scope :between, ->(range) { where(scheduled_at: range) }
+  scope :overlapping, ->(from, to) {
+    where("jobs.scheduled_at < ? AND jobs.scheduled_at + make_interval(mins => jobs.duration_minutes) > ?", to, from)
+  }
   scope :for_technician, ->(user) { where(technician: user) }
   scope :newest_first, -> { order(created_at: :desc) }
   scope :by_schedule, -> { order(:scheduled_at) }
@@ -102,6 +107,19 @@ class Job < ApplicationRecord
       return if property.nil? || customer.nil?
 
       errors.add(:property, "must belong to the selected customer") if property.customer_id != customer_id
+    end
+
+    def technician_is_free
+      clash = Job.where(technician_id: technician_id).where.not(id: id).where.not(status: :canceled)
+                 .overlapping(scheduled_at, scheduled_end).first
+      return unless clash
+
+      errors.add(:base, "#{technician.first_name} is already booked: #{clash.number} #{clash.scheduled_at.strftime('%-l:%M %P')}–#{clash.scheduled_end.strftime('%-l:%M %P')}")
+    end
+
+    # Open dashboards and schedule boards re-render themselves (Turbo 8 morph).
+    def refresh_dispatch_screens
+      broadcast_refresh_later_to :dispatch
     end
 
     def technician_is_a_technician

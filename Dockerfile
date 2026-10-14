@@ -73,5 +73,6 @@ COPY --chown=rails:rails --from=build /rails /rails
 ENTRYPOINT ["/rails/bin/docker-entrypoint"]
 
 # Start server via Thruster by default, this can be overwritten at runtime
-EXPOSE 80
-CMD ["./bin/thrust", "./bin/rails", "server"]
+# Railway (and most PaaS hosts) pass the port in $PORT, which Puma reads.
+EXPOSE 3000
+CMD ["./bin/rails", "server"]

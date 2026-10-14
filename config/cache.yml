@@ -11,6 +11,7 @@ development:
 test:
   <<: *default
 
+# Production uses :memory_store (config/environments/production.rb), so Solid
+# Cache has no database of its own here.
 production:
-  database: cache
   <<: *default

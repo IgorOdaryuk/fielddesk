@@ -25,10 +25,10 @@ Rails.application.configure do
   config.active_storage.service = :local
 
   # Assume all access to the app is happening through a SSL-terminating reverse proxy.
-  # config.assume_ssl = true
+  config.assume_ssl = true
 
   # Force all access to the app over SSL, use Strict-Transport-Security, and use secure cookies.
-  # config.force_ssl = true
+  config.force_ssl = true
 
   # Skip http-to-https redirect for the default health check endpoint.
   # config.ssl_options = { redirect: { exclude: ->(request) { request.path == "/up" } } }
@@ -47,11 +47,18 @@ Rails.application.configure do
   config.active_support.report_deprecations = false
 
   # Replace the default in-process memory cache store with a durable alternative.
-  config.cache_store = :solid_cache_store
+  config.cache_store = :memory_store
 
-  # Replace the default in-process and non-durable queuing backend for Active Job.
-  config.active_job.queue_adapter = :solid_queue
-  config.solid_queue.connects_to = { database: { writing: :queue } }
+  # The demo deploy sleeps when nobody is looking, and a Solid Queue worker
+  # polling the database every second would keep it awake. Jobs (texts,
+  # emails) run in-process instead. For real use set SOLID_QUEUE=1 and add the
+  # queue database from config/database.yml.
+  if ENV["SOLID_QUEUE"].present?
+    config.active_job.queue_adapter = :solid_queue
+    config.solid_queue.connects_to = { database: { writing: :queue } }
+  else
+    config.active_job.queue_adapter = :async
+  end
 
   # Ignore bad email addresses and do not raise email delivery errors.
   # Set this to true and configure the email server for immediate delivery to raise delivery errors.
@@ -59,6 +66,8 @@ Rails.application.configure do
 
   # Set host to be used by links generated in mailer templates.
   config.action_mailer.default_url_options = { host: ENV.fetch("APP_HOST", "example.com"), protocol: "https" }
+  # No mail server in the demo: reset emails are rendered but not delivered.
+  config.action_mailer.delivery_method = ENV["SMTP_ADDRESS"].present? ? :smtp : :test
 
   # Never run production on the public dev encryption keys from application.rb.
   # Skipped during the Docker asset build, which boots with a dummy secret.

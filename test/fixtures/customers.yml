@@ -1,10 +1,17 @@
 jane:
+  account: sunshine
   name: Jane Doe
   phone: "+18135550101"
   email: jane@example.com
   source: google_ads
 
 bob:
+  account: sunshine
   name: Bob Smith
   phone: "+17275550102"
   source: referral
+
+bayside_customer:
+  account: bayside
+  name: Carl Coastal
+  phone: "+17275550177"

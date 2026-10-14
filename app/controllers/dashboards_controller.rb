@@ -5,6 +5,7 @@ class DashboardsController < ApplicationController
     today = Time.zone.today
     @today_jobs = Job.on_day(today).includes(:customer, :technician).by_schedule
     @unscheduled = Job.unscheduled.includes(:customer).newest_first.limit(10)
+    @latest = Job.includes(:customer, :technician).newest_first.limit(5)
     @counts = {
       today: @today_jobs.count,
       in_field: Job.where(status: %i[en_route in_progress]).count,

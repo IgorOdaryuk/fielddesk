@@ -1,7 +1,9 @@
 class Customer < ApplicationRecord
   include Auditable
 
-  SOURCES = %w[google_ads lsa organic yelp thumbtack referral repeat other].freeze
+  acts_as_tenant :account
+
+  SOURCES = %w[google_ads lsa organic website yelp thumbtack referral repeat other].freeze
 
   encrypts :phone, deterministic: true
   encrypts :email, deterministic: true, downcase: true

@@ -23,6 +23,7 @@
           <%= link_to root_path, class: "px-3 mb-6 flex items-center gap-2 text-white font-semibold text-lg" do %>
             <span class="grid size-8 place-items-center rounded-lg bg-brand-600">FD</span> FieldDesk
           <% end %>
+          <div class="-mt-4 mb-5 px-3 text-xs text-slate-400 truncate"><%= current_account&.name %></div>
           <%= nav_link "Dashboard", dashboard_path %>
           <%= nav_link "Schedule", schedule_path %>
           <%= nav_link "Jobs", jobs_path, active: controller_name == "jobs" %>
@@ -33,6 +34,7 @@
             <div class="mt-4 mb-1 px-3 text-xs uppercase tracking-wide text-slate-500">Admin</div>
             <%= nav_link "Team", users_path, active: controller_name == "users" %>
             <%= nav_link "Audit log", audit_logs_path %>
+            <%= nav_link "Settings", edit_account_path %>
           <% end %>
           <div class="mt-auto px-3 text-sm text-slate-400">
             <div class="text-slate-200 font-medium"><%= current_user.name %></div>

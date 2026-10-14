@@ -40,6 +40,13 @@ Rails.application.routes.draw do
 
   post "webhooks/stripe", to: "stripe_webhooks#create"
 
+  # Public online booking for one company.
+  scope "book/:slug", controller: :bookings do
+    get "/", action: :new, as: :book
+    post "/", action: :create
+    get "confirmed", action: :confirmed, as: :book_confirmed
+  end
+
   namespace :my do
     resources :jobs, only: %i[ index show ]
   end
@@ -49,6 +56,8 @@ Rails.application.routes.draw do
   end
 
   resources :audit_logs, only: :index
+  resource :account, only: %i[ edit update ]
+  resource :signup, only: %i[ new create ]
 
   get "up" => "rails/health#show", as: :rails_health_check
 end

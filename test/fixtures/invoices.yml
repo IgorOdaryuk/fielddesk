@@ -1,4 +1,5 @@
 bob_sent:
+  account: sunshine
   number: INV-9001
   job: waiting
   status: <%= Invoice.statuses[:sent] %>

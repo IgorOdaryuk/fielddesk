@@ -52,7 +52,7 @@ module ApplicationHelper
     link_to label, path, class: [ "nav-link", ("nav-link-active" if active) ]
   end
 
-  SOURCE_LABELS = { "google_ads" => "Google Ads", "lsa" => "Local Services Ads" }.freeze
+  SOURCE_LABELS = { "google_ads" => "Google Ads", "lsa" => "Local Services Ads", "website" => "Online booking" }.freeze
 
   def source_label(source)
     return "Unknown" if source.blank?

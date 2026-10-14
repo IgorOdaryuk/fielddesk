@@ -13,7 +13,7 @@
   <p class="text-center text-sm"><%= link_to "Forgot password?", new_password_path, class: "text-slate-500 hover:text-slate-700" %></p>
 <% end %>
 
-<% if ENV["DEMO_MODE"].present? || Rails.env.development? %>
+<% if Demo.enabled? %>
   <% content_for :below_card do %>
     <div class="mt-6 rounded-xl bg-brand-50 p-4 text-sm text-slate-700 ring-1 ring-brand-100">
       <p class="font-medium mb-2">Demo accounts (password <code>demo-password</code>)</p>
@@ -23,5 +23,8 @@
         <li><code>mike@fielddesk.demo</code> — technician</li>
       </ul>
     </div>
+    <% if Signup.open? %>
+      <p class="mt-4 text-center text-sm text-slate-600">Want your own sandbox? <%= link_to "Create a company", new_signup_path, class: "font-medium text-brand-600" %></p>
+    <% end %>
   <% end %>
 <% end %>

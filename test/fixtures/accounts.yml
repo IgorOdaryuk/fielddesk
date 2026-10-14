@@ -1,0 +1,14 @@
+sunshine:
+  name: Sunshine Appliance Repair
+  slug: sunshine
+  phone: "+18135550100"
+  tax_rate_bps: 750
+  payment_terms_days: 7
+  review_url: https://g.page/r/sunshine/review
+
+bayside:
+  name: Bayside Appliance Pros
+  slug: bayside
+  phone: "+17275550199"
+  tax_rate_bps: 700
+  payment_terms_days: 14

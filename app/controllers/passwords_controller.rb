@@ -9,8 +9,8 @@ class PasswordsController < ApplicationController
   end
 
   def create
-    if user = User.active.find_by(email_address: params[:email_address])
-      PasswordsMailer.reset(user).deliver_later
+    if user = ActsAsTenant.without_tenant { User.active.find_by(email_address: params[:email_address]) }
+      ActsAsTenant.with_tenant(user.account) { PasswordsMailer.reset(user).deliver_later }
     end
 
     redirect_to new_session_path, notice: "Password reset instructions sent (if user with that email address exists)."
@@ -20,6 +20,7 @@ class PasswordsController < ApplicationController
   end
 
   def update
+    set_current_tenant(@user.account)
     if @user.update(params.permit(:password, :password_confirmation))
       @user.sessions.destroy_all
       AuditLog.record(action: "user.password_reset", auditable: @user, user: @user)
@@ -31,7 +32,7 @@ class PasswordsController < ApplicationController
 
   private
     def set_user_by_token
-      @user = User.find_by_password_reset_token!(params[:token])
+      @user = ActsAsTenant.without_tenant { User.find_by_password_reset_token!(params[:token]) }
     rescue ActiveSupport::MessageVerifier::InvalidSignature
       redirect_to new_password_path, alert: "Password reset link is invalid or has expired."
     end

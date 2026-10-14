@@ -1,6 +1,8 @@
 class Invoice < ApplicationRecord
   include Auditable
 
+  acts_as_tenant :account
+
   belongs_to :job
   has_one :customer, through: :job
   has_many :items, -> { order(:created_at) }, class_name: "InvoiceItem", dependent: :destroy, inverse_of: :invoice

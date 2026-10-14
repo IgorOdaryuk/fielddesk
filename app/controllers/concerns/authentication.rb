@@ -29,7 +29,9 @@ module Authentication
     def find_session_by_cookie
       return unless cookies.signed[:session_id]
 
-      Session.joins(:user).merge(User.active).find_by(id: cookies.signed[:session_id])
+      ActsAsTenant.without_tenant do
+        Session.includes(:user).joins(:user).merge(User.active).find_by(id: cookies.signed[:session_id])
+      end
     end
 
     def request_authentication

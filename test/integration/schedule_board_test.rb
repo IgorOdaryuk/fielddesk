@@ -70,7 +70,7 @@ class ScheduleBoardTest < ActionDispatch::IntegrationTest
   end
 
   test "any change to a job tells open boards to refresh" do
-    assert_turbo_stream_broadcasts(:dispatch) do
+    assert_turbo_stream_broadcasts([ accounts(:sunshine), :dispatch ]) do
       @job.update!(problem: "Still won't drain")
       perform_enqueued_jobs
     end

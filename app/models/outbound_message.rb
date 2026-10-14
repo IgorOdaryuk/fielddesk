@@ -1,6 +1,8 @@
 # Every SMS the app sends, real or simulated. In demo mode nothing leaves the
 # app: the message is stored as "simulated" and shown in the Outbox.
 class OutboundMessage < ApplicationRecord
+  acts_as_tenant :account
+
   belongs_to :customer, optional: true
   belongs_to :job, optional: true
 

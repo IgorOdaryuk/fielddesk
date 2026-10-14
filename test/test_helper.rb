@@ -11,6 +11,8 @@ module ActiveSupport
     # Setup all fixtures in test/fixtures/*.yml for all tests in alphabetical order.
     fixtures :all
 
-    # Add more helper methods to be used by all tests here...
+    # Test code runs as Sunshine; requests resolve their own account.
+    setup { ActsAsTenant.test_tenant = accounts(:sunshine) }
+    teardown { ActsAsTenant.test_tenant = nil }
   end
 end

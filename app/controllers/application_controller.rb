@@ -9,18 +9,28 @@ class ApplicationController < ActionController::Base
   # Changes to the importmap will invalidate the etag for HTML responses
   stale_when_importmap_changes
 
+  set_current_tenant_through_filter
   before_action :set_request_context
+  before_action :set_account_from_user
   after_action :verify_authorized, unless: :skip_authorization_check?
 
   rescue_from Pundit::NotAuthorizedError, with: :forbidden
 
-  helper_method :current_user
+  helper_method :current_user, :current_account
 
   private
     def current_user
       Current.user
     end
     alias_method :pundit_user, :current_user
+
+    def current_account
+      ActsAsTenant.current_tenant
+    end
+
+    def set_account_from_user
+      set_current_tenant(current_user.account) if current_user
+    end
 
     def set_request_context
       Current.ip_address = request.remote_ip

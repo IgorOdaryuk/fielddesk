@@ -7,8 +7,12 @@ class StripeWebhooksController < ApplicationController
 
     if event.type == "checkout.session.completed" && event.data.object.payment_status == "paid"
       session = event.data.object
-      invoice = Invoice.find_by(id: session.metadata["invoice_id"])
-      invoice&.record_payment!(amount_cents: session.amount_total, method: :online, gateway: "stripe", gateway_id: session.id)
+      invoice = ActsAsTenant.without_tenant { Invoice.find_by(id: session.metadata["invoice_id"]) }
+      if invoice
+        ActsAsTenant.with_tenant(invoice.account) do
+          invoice.record_payment!(amount_cents: session.amount_total, method: :online, gateway: "stripe", gateway_id: session.id)
+        end
+      end
     end
 
     head :ok

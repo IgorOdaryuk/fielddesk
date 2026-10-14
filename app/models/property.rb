@@ -1,6 +1,8 @@
 class Property < ApplicationRecord
   include Auditable
 
+  acts_as_tenant :account
+
   belongs_to :customer
   has_many :jobs, dependent: :restrict_with_error
 

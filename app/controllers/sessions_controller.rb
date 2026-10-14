@@ -8,15 +8,19 @@ class SessionsController < ApplicationController
   end
 
   def create
-    user = User.active.authenticate_by(params.permit(:email_address, :password))
+    # Sign-in happens before we know the company, so it looks across accounts.
+    user = ActsAsTenant.without_tenant { User.active.authenticate_by(params.permit(:email_address, :password)) }
 
     if user
-      start_new_session_for user
-      AuditLog.record(action: "session.sign_in", auditable: user)
+      ActsAsTenant.with_tenant(user.account) do
+        start_new_session_for user
+        AuditLog.record(action: "session.sign_in", auditable: user)
+      end
       redirect_to after_authentication_url
     else
-      AuditLog.record(action: "session.failed", user: nil,
-                      changes: { "email_address" => [ nil, params[:email_address].to_s.strip.downcase.truncate(100) ] })
+      email = params[:email_address].to_s.strip.downcase.truncate(100)
+      account = ActsAsTenant.without_tenant { User.find_by(email_address: email)&.account }
+      AuditLog.record(action: "session.failed", user: nil, account: account, changes: { "email_address" => [ nil, email ] })
       redirect_to new_session_path, alert: "Try another email address or password."
     end
   end

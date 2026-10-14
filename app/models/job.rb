@@ -1,6 +1,8 @@
 class Job < ApplicationRecord
   include Auditable
 
+  acts_as_tenant :account
+
   APPLIANCES = [ "Refrigerator", "Washer", "Dryer", "Dishwasher", "Oven", "Range", "Cooktop",
                  "Microwave", "Freezer", "Ice maker", "Wine cooler", "Garbage disposal" ].freeze
 
@@ -119,7 +121,7 @@ class Job < ApplicationRecord
 
     # Open dashboards and schedule boards re-render themselves (Turbo 8 morph).
     def refresh_dispatch_screens
-      broadcast_refresh_later_to :dispatch
+      broadcast_refresh_later_to account, :dispatch
     end
 
     def technician_is_a_technician

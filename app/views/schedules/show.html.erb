@@ -3,7 +3,7 @@
   <meta name="turbo-refresh-method" content="morph">
   <meta name="turbo-refresh-scroll" content="preserve">
 <% end %>
-<%= turbo_stream_from :dispatch %>
+<%= turbo_stream_from current_account, :dispatch %>
 
 <%= render "shared/page_header", title: "Schedule", subtitle: l(@date, format: "%A, %B %-d, %Y") do %>
   <%= link_to "← Prev", schedule_path(date: @date - 1), class: "btn-secondary" %>

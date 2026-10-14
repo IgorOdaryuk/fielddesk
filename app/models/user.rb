@@ -1,6 +1,8 @@
 class User < ApplicationRecord
   include Auditable
 
+  acts_as_tenant :account
+
   has_secure_password
   has_many :sessions, dependent: :destroy
   has_many :assigned_jobs, class_name: "Job", foreign_key: :technician_id, dependent: :nullify, inverse_of: :technician

@@ -1,6 +1,8 @@
 class Payment < ApplicationRecord
   include Auditable
 
+  acts_as_tenant :account
+
   belongs_to :invoice
   belongs_to :recorded_by, class_name: "User", optional: true
 

@@ -1,4 +1,5 @@
 tina_today:
+  account: sunshine
   number: J-90001
   customer: jane
   property: jane_home
@@ -11,6 +12,7 @@ tina_today:
   scheduled_at: <%= Time.zone.today.in_time_zone.change(hour: 10).to_fs(:db) %>
 
 otto_today:
+  account: sunshine
   number: J-90002
   customer: bob
   property: bob_home
@@ -21,9 +23,19 @@ otto_today:
   scheduled_at: <%= Time.zone.today.in_time_zone.change(hour: 12).to_fs(:db) %>
 
 waiting:
+  account: sunshine
   number: J-90003
   customer: bob
   property: bob_home
   status: <%= Job.statuses[:unscheduled] %>
   appliance: Refrigerator
   problem: Not cooling
+
+bayside_job:
+  account: bayside
+  number: J-90099
+  customer: bayside_customer
+  property: bayside_home
+  status: <%= Job.statuses[:unscheduled] %>
+  appliance: Oven
+  problem: Bayside-only secret problem

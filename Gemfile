@@ -72,3 +72,5 @@ gem "faker", "~> 3.8"
 gem "prawn", "~> 2.4"
 gem "prawn-table", "~> 0.2.2"
 gem "stripe", "~> 20.0"
+
+gem "acts_as_tenant", "~> 2.2"

@@ -15,6 +15,47 @@ SET default_tablespace = '';
 SET default_table_access_method = heap;
 
 --
+-- Name: accounts; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.accounts (
+    id bigint NOT NULL,
+    name character varying NOT NULL,
+    slug character varying NOT NULL,
+    phone character varying,
+    email character varying,
+    address character varying,
+    tax_rate_bps integer DEFAULT 0 NOT NULL,
+    payment_terms_days integer DEFAULT 7 NOT NULL,
+    review_url character varying,
+    booking_enabled boolean DEFAULT true NOT NULL,
+    sandbox boolean DEFAULT false NOT NULL,
+    created_at timestamp(6) without time zone NOT NULL,
+    updated_at timestamp(6) without time zone NOT NULL,
+    sample_data_loading boolean DEFAULT false NOT NULL
+);
+
+
+--
+-- Name: accounts_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.accounts_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: accounts_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.accounts_id_seq OWNED BY public.accounts.id;
+
+
+--
 -- Name: active_storage_attachments; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -138,7 +179,8 @@ CREATE TABLE public.audit_logs (
     audited_changes jsonb DEFAULT '{}'::jsonb NOT NULL,
     ip_address character varying,
     user_agent character varying,
-    created_at timestamp(6) without time zone NOT NULL
+    created_at timestamp(6) without time zone NOT NULL,
+    account_id bigint
 );
 
 
@@ -173,7 +215,8 @@ CREATE TABLE public.customers (
     source character varying,
     notes text,
     created_at timestamp(6) without time zone NOT NULL,
-    updated_at timestamp(6) without time zone NOT NULL
+    updated_at timestamp(6) without time zone NOT NULL,
+    account_id bigint NOT NULL
 );
 
 
@@ -265,7 +308,8 @@ CREATE TABLE public.invoices (
     voided_at timestamp(6) without time zone,
     notes text,
     created_at timestamp(6) without time zone NOT NULL,
-    updated_at timestamp(6) without time zone NOT NULL
+    updated_at timestamp(6) without time zone NOT NULL,
+    account_id bigint NOT NULL
 );
 
 
@@ -357,7 +401,8 @@ CREATE TABLE public.jobs (
     completed_at timestamp(6) without time zone,
     cancel_reason character varying,
     created_at timestamp(6) without time zone NOT NULL,
-    updated_at timestamp(6) without time zone NOT NULL
+    updated_at timestamp(6) without time zone NOT NULL,
+    account_id bigint NOT NULL
 );
 
 
@@ -398,7 +443,8 @@ CREATE TABLE public.outbound_messages (
     send_at timestamp(6) without time zone NOT NULL,
     sent_at timestamp(6) without time zone,
     created_at timestamp(6) without time zone NOT NULL,
-    updated_at timestamp(6) without time zone NOT NULL
+    updated_at timestamp(6) without time zone NOT NULL,
+    account_id bigint NOT NULL
 );
 
 
@@ -436,7 +482,8 @@ CREATE TABLE public.payments (
     gateway_id character varying,
     received_at timestamp(6) without time zone NOT NULL,
     created_at timestamp(6) without time zone NOT NULL,
-    updated_at timestamp(6) without time zone NOT NULL
+    updated_at timestamp(6) without time zone NOT NULL,
+    account_id bigint NOT NULL
 );
 
 
@@ -473,7 +520,8 @@ CREATE TABLE public.properties (
     zip character varying NOT NULL,
     access_notes text,
     created_at timestamp(6) without time zone NOT NULL,
-    updated_at timestamp(6) without time zone NOT NULL
+    updated_at timestamp(6) without time zone NOT NULL,
+    account_id bigint NOT NULL
 );
 
 
@@ -553,7 +601,8 @@ CREATE TABLE public.users (
     color character varying DEFAULT '#2563eb'::character varying NOT NULL,
     last_sign_in_at timestamp(6) without time zone,
     created_at timestamp(6) without time zone NOT NULL,
-    updated_at timestamp(6) without time zone NOT NULL
+    updated_at timestamp(6) without time zone NOT NULL,
+    account_id bigint NOT NULL
 );
 
 
@@ -574,6 +623,13 @@ CREATE SEQUENCE public.users_id_seq
 --
 
 ALTER SEQUENCE public.users_id_seq OWNED BY public.users.id;
+
+
+--
+-- Name: accounts id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.accounts ALTER COLUMN id SET DEFAULT nextval('public.accounts_id_seq'::regclass);
 
 
 --
@@ -672,6 +728,14 @@ ALTER TABLE ONLY public.sessions ALTER COLUMN id SET DEFAULT nextval('public.ses
 --
 
 ALTER TABLE ONLY public.users ALTER COLUMN id SET DEFAULT nextval('public.users_id_seq'::regclass);
+
+
+--
+-- Name: accounts accounts_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.accounts
+    ADD CONSTRAINT accounts_pkey PRIMARY KEY (id);
 
 
 --
@@ -803,6 +867,13 @@ ALTER TABLE ONLY public.users
 
 
 --
+-- Name: index_accounts_on_slug; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX index_accounts_on_slug ON public.accounts USING btree (slug);
+
+
+--
 -- Name: index_active_storage_attachments_on_blob_id; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -828,6 +899,13 @@ CREATE UNIQUE INDEX index_active_storage_blobs_on_key ON public.active_storage_b
 --
 
 CREATE UNIQUE INDEX index_active_storage_variant_records_uniqueness ON public.active_storage_variant_records USING btree (blob_id, variation_digest);
+
+
+--
+-- Name: index_audit_logs_on_account_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_audit_logs_on_account_id ON public.audit_logs USING btree (account_id);
 
 
 --
@@ -859,6 +937,13 @@ CREATE INDEX index_audit_logs_on_user_id ON public.audit_logs USING btree (user_
 
 
 --
+-- Name: index_customers_on_account_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_customers_on_account_id ON public.customers USING btree (account_id);
+
+
+--
 -- Name: index_customers_on_email; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -884,6 +969,13 @@ CREATE INDEX index_customers_on_phone ON public.customers USING btree (phone);
 --
 
 CREATE INDEX index_invoice_items_on_invoice_id ON public.invoice_items USING btree (invoice_id);
+
+
+--
+-- Name: index_invoices_on_account_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_invoices_on_account_id ON public.invoices USING btree (account_id);
 
 
 --
@@ -926,6 +1018,13 @@ CREATE INDEX index_job_notes_on_job_id ON public.job_notes USING btree (job_id);
 --
 
 CREATE INDEX index_job_notes_on_user_id ON public.job_notes USING btree (user_id);
+
+
+--
+-- Name: index_jobs_on_account_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_jobs_on_account_id ON public.jobs USING btree (account_id);
 
 
 --
@@ -978,6 +1077,13 @@ CREATE INDEX index_jobs_on_technician_id ON public.jobs USING btree (technician_
 
 
 --
+-- Name: index_outbound_messages_on_account_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_outbound_messages_on_account_id ON public.outbound_messages USING btree (account_id);
+
+
+--
 -- Name: index_outbound_messages_on_created_at; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -1006,6 +1112,13 @@ CREATE INDEX index_outbound_messages_on_status ON public.outbound_messages USING
 
 
 --
+-- Name: index_payments_on_account_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_payments_on_account_id ON public.payments USING btree (account_id);
+
+
+--
 -- Name: index_payments_on_gateway_and_gateway_id; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -1027,6 +1140,13 @@ CREATE INDEX index_payments_on_recorded_by_id ON public.payments USING btree (re
 
 
 --
+-- Name: index_properties_on_account_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_properties_on_account_id ON public.properties USING btree (account_id);
+
+
+--
 -- Name: index_properties_on_customer_id; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -1038,6 +1158,13 @@ CREATE INDEX index_properties_on_customer_id ON public.properties USING btree (c
 --
 
 CREATE INDEX index_sessions_on_user_id ON public.sessions USING btree (user_id);
+
+
+--
+-- Name: index_users_on_account_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_users_on_account_id ON public.users USING btree (account_id);
 
 
 --
@@ -1095,6 +1222,14 @@ ALTER TABLE ONLY public.invoices
 
 
 --
+-- Name: audit_logs fk_rails_4074d8a0f4; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.audit_logs
+    ADD CONSTRAINT fk_rails_4074d8a0f4 FOREIGN KEY (account_id) REFERENCES public.accounts(id);
+
+
+--
 -- Name: job_notes fk_rails_57a82982f1; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -1103,11 +1238,35 @@ ALTER TABLE ONLY public.job_notes
 
 
 --
+-- Name: users fk_rails_61ac11da2b; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.users
+    ADD CONSTRAINT fk_rails_61ac11da2b FOREIGN KEY (account_id) REFERENCES public.accounts(id);
+
+
+--
+-- Name: outbound_messages fk_rails_620493adb8; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.outbound_messages
+    ADD CONSTRAINT fk_rails_620493adb8 FOREIGN KEY (account_id) REFERENCES public.accounts(id);
+
+
+--
 -- Name: payments fk_rails_62d18ea517; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.payments
     ADD CONSTRAINT fk_rails_62d18ea517 FOREIGN KEY (invoice_id) REFERENCES public.invoices(id);
+
+
+--
+-- Name: properties fk_rails_6ddefd0639; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.properties
+    ADD CONSTRAINT fk_rails_6ddefd0639 FOREIGN KEY (account_id) REFERENCES public.accounts(id);
 
 
 --
@@ -1132,6 +1291,14 @@ ALTER TABLE ONLY public.jobs
 
 ALTER TABLE ONLY public.jobs
     ADD CONSTRAINT fk_rails_7b7b694d9f FOREIGN KEY (technician_id) REFERENCES public.users(id);
+
+
+--
+-- Name: payments fk_rails_81b2605d2a; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.payments
+    ADD CONSTRAINT fk_rails_81b2605d2a FOREIGN KEY (account_id) REFERENCES public.accounts(id);
 
 
 --
@@ -1167,6 +1334,22 @@ ALTER TABLE ONLY public.properties
 
 
 --
+-- Name: invoices fk_rails_afb4b1e584; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.invoices
+    ADD CONSTRAINT fk_rails_afb4b1e584 FOREIGN KEY (account_id) REFERENCES public.accounts(id);
+
+
+--
+-- Name: jobs fk_rails_c31d0a1ae2; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.jobs
+    ADD CONSTRAINT fk_rails_c31d0a1ae2 FOREIGN KEY (account_id) REFERENCES public.accounts(id);
+
+
+--
 -- Name: active_storage_attachments fk_rails_c3b3935057; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -1191,12 +1374,22 @@ ALTER TABLE ONLY public.outbound_messages
 
 
 --
+-- Name: customers fk_rails_ed7ccfecee; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.customers
+    ADD CONSTRAINT fk_rails_ed7ccfecee FOREIGN KEY (account_id) REFERENCES public.accounts(id);
+
+
+--
 -- PostgreSQL database dump complete
 --
 
 SET search_path TO "$user", public;
 
 INSERT INTO "schema_migrations" (version) VALUES
+('20261015140000'),
+('20261015120000'),
 ('20261015090003'),
 ('20261015090002'),
 ('20261015090001'),

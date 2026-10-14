@@ -24,6 +24,9 @@ module Messaging
     case kind
     when :on_my_way
       "Hi #{customer.first_name}, it's #{Company.name}. #{tech} is on the way for your #{job.appliance.downcase} repair and should arrive in about 30 minutes."
+    when :booking_confirmation
+      "Hi #{customer.first_name}, you're booked with #{Company.name}: #{job.scheduled_at.strftime('%a %b %-d')}, " \
+        "#{job.scheduled_at.strftime('%-l%P')}–#{job.scheduled_end.strftime('%-l%P')}. #{tech} will text you when on the way."
     when :review_request
       "Thanks for choosing #{Company.name}, #{customer.first_name}! If #{tech} did a great job, a quick review helps us a lot: #{Company.review_url}"
     when :invoice

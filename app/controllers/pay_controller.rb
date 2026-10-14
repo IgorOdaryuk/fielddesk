@@ -42,7 +42,10 @@ class PayController < ApplicationController
 
   private
     def set_invoice
-      @invoice = Invoice.where.not(status: :draft).find_by!(payment_token: params[:token].to_s)
+      # The token is the only key the customer has, so look it up across
+      # accounts, then work inside the invoice's company.
+      @invoice = ActsAsTenant.without_tenant { Invoice.where.not(status: :draft).find_by!(payment_token: params[:token].to_s) }
+      set_current_tenant(@invoice.account)
     end
 
     def gateway

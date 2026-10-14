@@ -5,6 +5,9 @@
 
 Rails.application.configure do
   config.active_record.encryption.encrypt_fixtures = true
+  # Requests must find their account on their own, not inherit the test's.
+  require "acts_as_tenant/test_tenant_middleware"
+  config.middleware.use ActsAsTenant::TestTenantMiddleware
   # Settings specified here will take precedence over those in config/application.rb.
 
   # While tests run files are not watched, reloading is not necessary.

@@ -1,0 +1,15 @@
+<%# Invoice summary on a job page, for staff and the job's technician. %>
+<section id="invoice" class="card card-body">
+  <div class="flex items-center justify-between mb-3">
+    <h2 class="font-semibold">Invoice</h2>
+    <% if job.invoice %><%= invoice_badge(job.invoice) %><% end %>
+  </div>
+  <% if (invoice = job.invoice) %>
+    <%= render "invoices/editor", invoice: invoice %>
+  <% elsif policy(Invoice.new(job_id: job.id)).create? %>
+    <p class="text-sm text-slate-500 mb-3">No invoice yet.</p>
+    <%= button_to "Start invoice", job_invoice_path(job), class: "btn-primary" %>
+  <% else %>
+    <p class="text-sm text-slate-500">No invoice yet.</p>
+  <% end %>
+</section>

@@ -60,6 +60,35 @@ module ApplicationHelper
     SOURCE_LABELS.fetch(source.to_s, source.to_s.humanize)
   end
 
+  INVOICE_STYLES = {
+    "draft" => "bg-slate-100 text-slate-600 ring-slate-500/20",
+    "sent"  => "bg-blue-50 text-blue-700 ring-blue-600/20",
+    "paid"  => "bg-emerald-50 text-emerald-700 ring-emerald-600/20",
+    "void"  => "bg-slate-100 text-slate-400 ring-slate-500/20 line-through"
+  }.freeze
+
+  MESSAGE_STYLES = {
+    "scheduled" => "bg-amber-50 text-amber-700 ring-amber-600/20",
+    "sent"      => "bg-emerald-50 text-emerald-700 ring-emerald-600/20",
+    "simulated" => "bg-violet-50 text-violet-700 ring-violet-600/20",
+    "failed"    => "bg-red-50 text-red-700 ring-red-600/20",
+    "skipped"   => "bg-slate-100 text-slate-500 ring-slate-500/20"
+  }.freeze
+
+  def money(cents)
+    number_to_currency((cents || 0) / 100.0)
+  end
+
+  def invoice_badge(invoice)
+    label = invoice.overdue? ? "Overdue" : invoice.status.humanize
+    style = invoice.overdue? ? "bg-red-50 text-red-700 ring-red-600/20" : INVOICE_STYLES[invoice.status]
+    tag.span(label, class: "inline-flex items-center rounded-md px-2 py-0.5 text-xs font-medium ring-1 ring-inset #{style}")
+  end
+
+  def message_badge(message)
+    tag.span(message.status.humanize, class: "inline-flex items-center rounded-md px-2 py-0.5 text-xs font-medium ring-1 ring-inset #{MESSAGE_STYLES[message.status]}")
+  end
+
   def page_nav(pagy)
     pagy.pages > 1 ? pagy.series_nav.html_safe : nil
   end

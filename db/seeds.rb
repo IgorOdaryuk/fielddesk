@@ -12,7 +12,7 @@ srand(42)
 Current.skip_audit = true
 
 if ENV["RESEED"].present?
-  [ AuditLog, JobNote, Job, Property, Customer, Session, User ].each(&:delete_all)
+  [ OutboundMessage, Payment, InvoiceItem, Invoice, AuditLog, JobNote, Job, Property, Customer, Session, User ].each(&:delete_all)
   ActiveStorage::Attachment.delete_all
 end
 
@@ -82,7 +82,14 @@ customers.each do |customer|
 
     status =
       if day < today then rand < 0.88 ? :completed : :canceled
-      elsif day == today then %i[scheduled scheduled en_route in_progress completed].sample
+      elsif day == today
+        # Follow the clock: earlier slots are done, the current one is being worked.
+        minutes_in = (Time.current - slot) / 60
+        if minutes_in > 120 then rand < 0.85 ? :completed : :in_progress
+        elsif minutes_in > 0 then :in_progress
+        elsif minutes_in > -45 then :en_route
+        else :scheduled
+        end
       else rand < 0.85 ? :scheduled : :unscheduled
       end
 
@@ -103,6 +110,72 @@ customers.each do |customer|
     if status.in?(%i[completed in_progress])
       job.notes.create!(user: tech, body: tech_notes.sample, created_at: attrs[:started_at] + 30.minutes)
     end
+  end
+end
+
+# Invoices for finished work: most paid (cash, check, card on site, online),
+# some still waiting, a few overdue. Prices are typical for the trade.
+parts = {
+  "Refrigerator" => [ [ "Defrost thermostat", 4_800 ], [ "Evaporator fan motor", 8_900 ], [ "Start relay", 3_900 ] ],
+  "Washer" => [ [ "Drain pump", 7_900 ], [ "Door lock assembly", 9_400 ], [ "Shock absorbers (pair)", 6_200 ] ],
+  "Dryer" => [ [ "Heating element", 8_400 ], [ "Thermal fuse", 2_900 ], [ "Drum belt", 3_400 ] ],
+  "Dishwasher" => [ [ "Drain pump", 8_200 ], [ "Door gasket", 4_600 ], [ "Control board", 18_900 ] ],
+  "Oven" => [ [ "Bake element", 6_900 ], [ "Temperature sensor", 5_400 ] ],
+  "Range" => [ [ "Igniter", 5_900 ], [ "Spark module", 8_800 ] ],
+  "Microwave" => [ [ "Magnetron", 12_900 ], [ "Turntable motor", 3_600 ] ],
+  "Ice maker" => [ [ "Ice maker assembly", 14_900 ], [ "Water inlet valve", 6_400 ] ]
+}
+invoiced = 0
+
+Job.completed.includes(:customer, :technician).find_each do |job|
+  next if rand < 0.08 # a few completed jobs not billed yet
+
+  done = job.completed_at
+  invoice = job.create_invoice!(tax_rate_bps: Company.tax_rate_bps, due_on: done.to_date + Company.payment_terms_days,
+                                created_at: done, notes: "90-day warranty on parts and labor.")
+  invoice.items.create!(kind: :fee, description: "Diagnostic visit", quantity: 1, unit_price_cents: 8_900)
+  if rand < 0.8
+    name, price = parts.fetch(job.appliance, [ [ "Replacement part", 6_500 ] ]).sample
+    invoice.items.create!(kind: :part, description: name, quantity: 1, unit_price_cents: price)
+    invoice.items.create!(kind: :labor, description: "Repair labor", quantity: [ 1, 1, 1.5, 2 ].sample, unit_price_cents: 9_500)
+  end
+  invoice.reload.recalculate!
+  invoice.update_columns(status: Invoice.statuses[:sent], sent_at: done + 10.minutes)
+
+  unpaid = done > 3.days.ago ? rand < 0.4 : rand < 0.07
+  unless unpaid
+    method = %i[card_on_site card_on_site cash check online].sample
+    paid_at = [ method == :online ? done + rand(2..48).hours : done + 15.minutes, 5.minutes.ago ].min
+    invoice.payments.create!(amount_cents: invoice.total_cents, method: method, received_at: paid_at, recorded_by: (job.technician unless method == :online),
+                             reference: (rand(1000..9999).to_s if method == :check),
+                             gateway: ("simulated" if method == :online), gateway_id: ("sim_ch_#{SecureRandom.hex(8)}" if method == :online))
+    invoice.update_columns(status: Invoice.statuses[:paid], paid_cents: invoice.total_cents, paid_at: paid_at)
+  end
+  invoiced += 1
+end
+
+# The texts those events would have produced, so the outbox has history.
+Job.where(scheduled_at: 7.days.ago.beginning_of_day..).where.not(technician_id: nil)
+   .where(status: %i[en_route in_progress completed]).includes(:customer, :technician, :invoice).find_each do |job|
+  sent = ->(kind, at, **ctx) do
+    OutboundMessage.create!(kind: kind.to_s, customer: job.customer, job: job, to: job.customer.phone, status: :simulated, provider: "simulated",
+                            body: Messaging.body_for(kind, job: job, customer: job.customer, **ctx), send_at: at, sent_at: at)
+  end
+  sent.(:on_my_way, job.scheduled_at - 25.minutes)
+  next unless job.completed?
+
+  if (invoice = job.invoice)
+    sent.(:invoice, invoice.sent_at, invoice: invoice)
+    if (payment = invoice.payments.first)
+      sent.(:receipt, payment.received_at, invoice: invoice, payment: payment)
+    end
+  end
+  review_at = job.completed_at + Company.review_request_delay
+  if review_at.past?
+    sent.(:review_request, review_at)
+  else
+    OutboundMessage.create!(kind: "review_request", customer: job.customer, job: job, to: job.customer.phone, status: :scheduled,
+                            body: Messaging.body_for(:review_request, job: job, customer: job.customer), send_at: review_at)
   end
 end
 
@@ -128,4 +201,5 @@ end
 end
 
 Current.skip_audit = false
-puts "Seeded #{User.count} users, #{Customer.count} customers, #{created} jobs. Password for every demo login: #{password}"
+puts "Seeded #{User.count} users, #{Customer.count} customers, #{created} jobs, #{invoiced} invoices, " \
+     "#{OutboundMessage.count} texts. Password for every demo login: #{password}"

@@ -27,6 +27,8 @@
           <%= nav_link "Schedule", schedule_path %>
           <%= nav_link "Jobs", jobs_path, active: controller_name == "jobs" %>
           <%= nav_link "Customers", customers_path, active: controller_name.in?(%w[customers properties]) %>
+          <%= nav_link "Invoices", invoices_path, active: controller_name == "invoices" %>
+          <%= nav_link "SMS outbox", outbound_messages_path %>
           <% if current_user.admin? %>
             <div class="mt-4 mb-1 px-3 text-xs uppercase tracking-wide text-slate-500">Admin</div>
             <%= nav_link "Team", users_path, active: controller_name == "users" %>
@@ -40,11 +42,14 @@
         </aside>
 
         <div class="flex-1 md:pl-60 min-w-0">
+          <%= render "shared/demo_banner" %>
           <nav class="md:hidden flex gap-1 overflow-x-auto bg-slate-900 px-3 py-2">
             <%= nav_link "Dashboard", dashboard_path %>
             <%= nav_link "Schedule", schedule_path %>
             <%= nav_link "Jobs", jobs_path %>
             <%= nav_link "Customers", customers_path %>
+            <%= nav_link "Invoices", invoices_path %>
+            <%= nav_link "Outbox", outbound_messages_path %>
             <% if current_user.admin? %><%= nav_link "Team", users_path %><% end %>
           </nav>
           <main class="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8">
@@ -54,6 +59,7 @@
         </div>
       </div>
     <% else %>
+      <%= render "shared/demo_banner" %>
       <header class="sticky top-0 z-10 bg-slate-900 text-white">
         <div class="mx-auto flex max-w-2xl items-center justify-between px-4 py-3">
           <%= link_to "My jobs", my_jobs_path, class: "font-semibold" %>

@@ -197,6 +197,98 @@ ALTER SEQUENCE public.customers_id_seq OWNED BY public.customers.id;
 
 
 --
+-- Name: invoice_items; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.invoice_items (
+    id bigint NOT NULL,
+    invoice_id bigint NOT NULL,
+    kind integer DEFAULT 0 NOT NULL,
+    description character varying NOT NULL,
+    quantity numeric(8,2) DEFAULT 1.0 NOT NULL,
+    unit_price_cents integer NOT NULL,
+    taxable boolean DEFAULT false NOT NULL,
+    created_at timestamp(6) without time zone NOT NULL,
+    updated_at timestamp(6) without time zone NOT NULL
+);
+
+
+--
+-- Name: invoice_items_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.invoice_items_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: invoice_items_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.invoice_items_id_seq OWNED BY public.invoice_items.id;
+
+
+--
+-- Name: invoice_numbers; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.invoice_numbers
+    START WITH 5001
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: invoices; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.invoices (
+    id bigint NOT NULL,
+    number character varying DEFAULT ('INV-'::text || nextval('public.invoice_numbers'::regclass)) NOT NULL,
+    job_id bigint NOT NULL,
+    status integer DEFAULT 0 NOT NULL,
+    tax_rate_bps integer DEFAULT 0 NOT NULL,
+    subtotal_cents integer DEFAULT 0 NOT NULL,
+    tax_cents integer DEFAULT 0 NOT NULL,
+    total_cents integer DEFAULT 0 NOT NULL,
+    paid_cents integer DEFAULT 0 NOT NULL,
+    payment_token character varying NOT NULL,
+    due_on date,
+    sent_at timestamp(6) without time zone,
+    paid_at timestamp(6) without time zone,
+    voided_at timestamp(6) without time zone,
+    notes text,
+    created_at timestamp(6) without time zone NOT NULL,
+    updated_at timestamp(6) without time zone NOT NULL
+);
+
+
+--
+-- Name: invoices_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.invoices_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: invoices_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.invoices_id_seq OWNED BY public.invoices.id;
+
+
+--
 -- Name: job_notes; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -286,6 +378,85 @@ CREATE SEQUENCE public.jobs_id_seq
 --
 
 ALTER SEQUENCE public.jobs_id_seq OWNED BY public.jobs.id;
+
+
+--
+-- Name: outbound_messages; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.outbound_messages (
+    id bigint NOT NULL,
+    customer_id bigint,
+    job_id bigint,
+    kind character varying NOT NULL,
+    "to" character varying NOT NULL,
+    body text NOT NULL,
+    status integer DEFAULT 0 NOT NULL,
+    provider character varying,
+    provider_id character varying,
+    error character varying,
+    send_at timestamp(6) without time zone NOT NULL,
+    sent_at timestamp(6) without time zone,
+    created_at timestamp(6) without time zone NOT NULL,
+    updated_at timestamp(6) without time zone NOT NULL
+);
+
+
+--
+-- Name: outbound_messages_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.outbound_messages_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: outbound_messages_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.outbound_messages_id_seq OWNED BY public.outbound_messages.id;
+
+
+--
+-- Name: payments; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.payments (
+    id bigint NOT NULL,
+    invoice_id bigint NOT NULL,
+    recorded_by_id bigint,
+    amount_cents integer NOT NULL,
+    method integer NOT NULL,
+    reference character varying,
+    gateway character varying,
+    gateway_id character varying,
+    received_at timestamp(6) without time zone NOT NULL,
+    created_at timestamp(6) without time zone NOT NULL,
+    updated_at timestamp(6) without time zone NOT NULL
+);
+
+
+--
+-- Name: payments_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.payments_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: payments_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.payments_id_seq OWNED BY public.payments.id;
 
 
 --
@@ -441,6 +612,20 @@ ALTER TABLE ONLY public.customers ALTER COLUMN id SET DEFAULT nextval('public.cu
 
 
 --
+-- Name: invoice_items id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.invoice_items ALTER COLUMN id SET DEFAULT nextval('public.invoice_items_id_seq'::regclass);
+
+
+--
+-- Name: invoices id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.invoices ALTER COLUMN id SET DEFAULT nextval('public.invoices_id_seq'::regclass);
+
+
+--
 -- Name: job_notes id; Type: DEFAULT; Schema: public; Owner: -
 --
 
@@ -452,6 +637,20 @@ ALTER TABLE ONLY public.job_notes ALTER COLUMN id SET DEFAULT nextval('public.jo
 --
 
 ALTER TABLE ONLY public.jobs ALTER COLUMN id SET DEFAULT nextval('public.jobs_id_seq'::regclass);
+
+
+--
+-- Name: outbound_messages id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.outbound_messages ALTER COLUMN id SET DEFAULT nextval('public.outbound_messages_id_seq'::regclass);
+
+
+--
+-- Name: payments id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.payments ALTER COLUMN id SET DEFAULT nextval('public.payments_id_seq'::regclass);
 
 
 --
@@ -524,6 +723,22 @@ ALTER TABLE ONLY public.customers
 
 
 --
+-- Name: invoice_items invoice_items_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.invoice_items
+    ADD CONSTRAINT invoice_items_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: invoices invoices_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.invoices
+    ADD CONSTRAINT invoices_pkey PRIMARY KEY (id);
+
+
+--
 -- Name: job_notes job_notes_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -537,6 +752,22 @@ ALTER TABLE ONLY public.job_notes
 
 ALTER TABLE ONLY public.jobs
     ADD CONSTRAINT jobs_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: outbound_messages outbound_messages_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.outbound_messages
+    ADD CONSTRAINT outbound_messages_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: payments payments_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.payments
+    ADD CONSTRAINT payments_pkey PRIMARY KEY (id);
 
 
 --
@@ -649,6 +880,41 @@ CREATE INDEX index_customers_on_phone ON public.customers USING btree (phone);
 
 
 --
+-- Name: index_invoice_items_on_invoice_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_invoice_items_on_invoice_id ON public.invoice_items USING btree (invoice_id);
+
+
+--
+-- Name: index_invoices_on_job_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX index_invoices_on_job_id ON public.invoices USING btree (job_id);
+
+
+--
+-- Name: index_invoices_on_number; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX index_invoices_on_number ON public.invoices USING btree (number);
+
+
+--
+-- Name: index_invoices_on_payment_token; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX index_invoices_on_payment_token ON public.invoices USING btree (payment_token);
+
+
+--
+-- Name: index_invoices_on_status; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_invoices_on_status ON public.invoices USING btree (status);
+
+
+--
 -- Name: index_job_notes_on_job_id; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -712,6 +978,55 @@ CREATE INDEX index_jobs_on_technician_id ON public.jobs USING btree (technician_
 
 
 --
+-- Name: index_outbound_messages_on_created_at; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_outbound_messages_on_created_at ON public.outbound_messages USING btree (created_at);
+
+
+--
+-- Name: index_outbound_messages_on_customer_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_outbound_messages_on_customer_id ON public.outbound_messages USING btree (customer_id);
+
+
+--
+-- Name: index_outbound_messages_on_job_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_outbound_messages_on_job_id ON public.outbound_messages USING btree (job_id);
+
+
+--
+-- Name: index_outbound_messages_on_status; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_outbound_messages_on_status ON public.outbound_messages USING btree (status);
+
+
+--
+-- Name: index_payments_on_gateway_and_gateway_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX index_payments_on_gateway_and_gateway_id ON public.payments USING btree (gateway, gateway_id) WHERE (gateway_id IS NOT NULL);
+
+
+--
+-- Name: index_payments_on_invoice_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_payments_on_invoice_id ON public.payments USING btree (invoice_id);
+
+
+--
+-- Name: index_payments_on_recorded_by_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_payments_on_recorded_by_id ON public.payments USING btree (recorded_by_id);
+
+
+--
 -- Name: index_properties_on_customer_id; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -748,6 +1063,14 @@ ALTER TABLE ONLY public.job_notes
 
 
 --
+-- Name: outbound_messages fk_rails_1579094af2; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.outbound_messages
+    ADD CONSTRAINT fk_rails_1579094af2 FOREIGN KEY (customer_id) REFERENCES public.customers(id);
+
+
+--
 -- Name: audit_logs fk_rails_1f26bc34ae; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -756,11 +1079,35 @@ ALTER TABLE ONLY public.audit_logs
 
 
 --
+-- Name: invoice_items fk_rails_25bf3d2c5e; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.invoice_items
+    ADD CONSTRAINT fk_rails_25bf3d2c5e FOREIGN KEY (invoice_id) REFERENCES public.invoices(id);
+
+
+--
+-- Name: invoices fk_rails_3aa98f4ab2; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.invoices
+    ADD CONSTRAINT fk_rails_3aa98f4ab2 FOREIGN KEY (job_id) REFERENCES public.jobs(id);
+
+
+--
 -- Name: job_notes fk_rails_57a82982f1; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.job_notes
     ADD CONSTRAINT fk_rails_57a82982f1 FOREIGN KEY (job_id) REFERENCES public.jobs(id);
+
+
+--
+-- Name: payments fk_rails_62d18ea517; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.payments
+    ADD CONSTRAINT fk_rails_62d18ea517 FOREIGN KEY (invoice_id) REFERENCES public.invoices(id);
 
 
 --
@@ -785,6 +1132,14 @@ ALTER TABLE ONLY public.jobs
 
 ALTER TABLE ONLY public.jobs
     ADD CONSTRAINT fk_rails_7b7b694d9f FOREIGN KEY (technician_id) REFERENCES public.users(id);
+
+
+--
+-- Name: payments fk_rails_872d859cfb; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.payments
+    ADD CONSTRAINT fk_rails_872d859cfb FOREIGN KEY (recorded_by_id) REFERENCES public.users(id);
 
 
 --
@@ -828,12 +1183,24 @@ ALTER TABLE ONLY public.jobs
 
 
 --
+-- Name: outbound_messages fk_rails_cc2dcb5cfd; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.outbound_messages
+    ADD CONSTRAINT fk_rails_cc2dcb5cfd FOREIGN KEY (job_id) REFERENCES public.jobs(id);
+
+
+--
 -- PostgreSQL database dump complete
 --
 
 SET search_path TO "$user", public;
 
 INSERT INTO "schema_migrations" (version) VALUES
+('20261015090003'),
+('20261015090002'),
+('20261015090001'),
+('20261015090000'),
 ('20261014213004'),
 ('20261014213003'),
 ('20261014213002'),

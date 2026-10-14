@@ -8,6 +8,7 @@ class Customer < ApplicationRecord
 
   has_many :properties, dependent: :destroy
   has_many :jobs, dependent: :restrict_with_error
+  has_many :outbound_messages, dependent: :nullify
 
   accepts_nested_attributes_for :properties, reject_if: :all_blank
 
@@ -26,6 +27,10 @@ class Customer < ApplicationRecord
     q = query.strip
     by_contact = where(phone: PhoneNumber.normalize(q)).or(where(email: q.downcase))
     where("customers.name ILIKE ?", "%#{sanitize_sql_like(q)}%").or(by_contact)
+  end
+
+  def first_name
+    name.split.first
   end
 
   private

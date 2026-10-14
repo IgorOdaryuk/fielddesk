@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html class="h-full bg-slate-50">
+  <head>
+    <title><%= content_for?(:title) ? yield(:title) : "Invoice" %> · <%= Company.name %></title>
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <meta name="robots" content="noindex">
+    <%= csrf_meta_tags %>
+    <%= csp_meta_tag %>
+    <link rel="icon" href="/icon.svg" type="image/svg+xml">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <%= stylesheet_link_tag "tailwind", "data-turbo-track": "reload" %>
+    <%= javascript_importmap_tags %>
+  </head>
+  <body class="h-full font-sans text-slate-900 antialiased">
+    <%= render "shared/demo_banner" %>
+    <div class="mx-auto max-w-lg px-4 py-8">
+      <div class="mb-6 text-center">
+        <div class="text-lg font-semibold"><%= Company.name %></div>
+        <div class="text-sm text-slate-500"><%= PhoneNumber.format(Company.phone) %></div>
+      </div>
+      <%= render "shared/flash" %>
+      <%= yield %>
+    </div>
+  </body>
+</html>

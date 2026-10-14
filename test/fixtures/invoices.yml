@@ -1,0 +1,11 @@
+bob_sent:
+  number: INV-9001
+  job: waiting
+  status: <%= Invoice.statuses[:sent] %>
+  tax_rate_bps: 750
+  subtotal_cents: 18900
+  tax_cents: 750
+  total_cents: 19650
+  payment_token: bobsenttokenabc123
+  sent_at: <%= 1.day.ago.to_fs(:db) %>
+  due_on: <%= 6.days.from_now.to_date %>

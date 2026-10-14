@@ -1,0 +1,33 @@
+<% content_for :title, "Invoices" %>
+<%= render "shared/page_header", title: "Invoices", subtitle: "Start an invoice from a job." %>
+
+<div class="grid grid-cols-2 gap-4 mb-6 max-w-xl">
+  <div class="card card-body"><div class="text-sm text-slate-500">Outstanding</div><div class="mt-1 text-2xl font-semibold tabular-nums"><%= money(@outstanding_cents) %></div></div>
+  <div class="card card-body"><div class="text-sm text-slate-500">Collected this month</div><div class="mt-1 text-2xl font-semibold tabular-nums"><%= money(@paid_this_month_cents) %></div></div>
+</div>
+
+<div class="mb-4 flex flex-wrap gap-2 text-sm">
+  <% [ [ "All", nil ], [ "Outstanding", "outstanding" ], [ "Draft", "draft" ], [ "Paid", "paid" ], [ "Void", "void" ] ].each do |label, value| %>
+    <%= link_to label, invoices_path(status: value), class: params[:status] == value ? "btn-primary" : "btn-secondary" %>
+  <% end %>
+</div>
+
+<div class="card overflow-x-auto">
+  <table class="table">
+    <thead><tr><th>Invoice</th><th>Customer</th><th>Issued</th><th class="text-right">Total</th><th class="text-right">Balance</th><th>Status</th></tr></thead>
+    <tbody class="divide-y divide-slate-100">
+      <% @invoices.each do |invoice| %>
+        <tr class="hover:bg-slate-50">
+          <td><%= link_to invoice.number, invoice, class: "font-medium text-slate-900 hover:underline" %><div class="text-xs text-slate-500"><%= invoice.job.number %></div></td>
+          <td><%= invoice.job.customer.name %></td>
+          <td class="text-slate-500 whitespace-nowrap"><%= l((invoice.sent_at || invoice.created_at).to_date, format: "%b %-d") %></td>
+          <td class="text-right tabular-nums"><%= money(invoice.total_cents) %></td>
+          <td class="text-right tabular-nums"><%= money(invoice.balance_cents) %></td>
+          <td><%= invoice_badge(invoice) %></td>
+        </tr>
+      <% end %>
+      <% if @invoices.empty? %><tr><td colspan="6" class="py-10 text-center text-slate-500">No invoices here.</td></tr><% end %>
+    </tbody>
+  </table>
+</div>
+<div class="mt-4"><%= page_nav(@pagy) %></div>

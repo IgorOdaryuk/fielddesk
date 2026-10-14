@@ -28,6 +28,7 @@
 </section>
 
 <div class="space-y-4">
+  <% if @job.in_progress? || @job.completed? || @job.invoice %><%= render "invoices/panel", job: @job %><% end %>
   <%= render "jobs/photos", job: @job %>
   <%= render "jobs/notes", job: @job, note: @note %>
 </div>

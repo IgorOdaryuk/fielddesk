@@ -20,6 +20,7 @@
       <div class="mt-5 border-t border-slate-100 pt-4"><%= render "jobs/transitions", job: @job %></div>
     </section>
 
+    <%= render "invoices/panel", job: @job %>
     <%= render "jobs/notes", job: @job, note: @note %>
     <%= render "jobs/photos", job: @job %>
   </div>

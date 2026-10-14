@@ -1,0 +1,32 @@
+<% content_for :title, @invoice.number %>
+<%= render "shared/page_header", title: "Invoice #{@invoice.number}", subtitle: "#{@invoice.customer.name} · job #{@invoice.job.number}" do %>
+  <%= link_to "Open job", @invoice.job, class: "btn-secondary" %>
+  <% if policy(@invoice).void? %>
+    <%= button_to "Void", void_invoice_path(@invoice), form: { data: { turbo_confirm: "Void #{@invoice.number}? It can't be paid after this." } }, class: "btn-danger" %>
+  <% end %>
+<% end %>
+
+<div class="grid gap-6 lg:grid-cols-3">
+  <section class="card card-body lg:col-span-2">
+    <div class="mb-3"><%= invoice_badge(@invoice) %></div>
+    <%= render "invoices/editor", invoice: @invoice %>
+  </section>
+
+  <div class="space-y-6">
+    <section class="card card-body text-sm">
+      <h2 class="font-semibold text-base mb-3">Details</h2>
+      <%= form_with model: @invoice, class: "space-y-3" do |f| %>
+        <div><%= f.label :due_on, "Due date", class: "label" %><%= f.date_field :due_on, class: "input" %></div>
+        <div><%= f.label :notes, "Note on the invoice", class: "label" %><%= f.text_area :notes, rows: 3, class: "input", placeholder: "90-day warranty on parts and labor." %></div>
+        <%= f.submit "Save", class: "btn-secondary" %>
+      <% end %>
+    </section>
+    <section class="card card-body text-sm space-y-1">
+      <h2 class="font-semibold text-base mb-2">Timeline</h2>
+      <div>Created <%= l(@invoice.created_at, format: "%b %-d, %-l:%M %P") %></div>
+      <% if @invoice.sent_at %><div>Sent <%= l(@invoice.sent_at, format: "%b %-d, %-l:%M %P") %></div><% end %>
+      <% if @invoice.paid_at %><div class="text-emerald-700">Paid <%= l(@invoice.paid_at, format: "%b %-d, %-l:%M %P") %></div><% end %>
+      <% if @invoice.voided_at %><div>Voided <%= l(@invoice.voided_at, format: "%b %-d, %-l:%M %P") %></div><% end %>
+    </section>
+  </div>
+</div>

@@ -1,0 +1,11 @@
+# The business the app runs for. Override per deploy with ENV.
+shared:
+  name: "<%= ENV.fetch("COMPANY_NAME", "Sunshine Appliance Repair") %>"
+  phone: "<%= ENV.fetch("COMPANY_PHONE", "+18135550100") %>"
+  email: "<%= ENV.fetch("COMPANY_EMAIL", "billing@fielddesk.demo") %>"
+  address: "<%= ENV.fetch("COMPANY_ADDRESS", "100 Demo Way, Tampa, FL 33602") %>"
+  # Sales tax in basis points (750 = 7.5%), applied to taxable lines (parts).
+  tax_rate_bps: <%= ENV.fetch("COMPANY_TAX_RATE_BPS", "750") %>
+  payment_terms_days: 7
+  review_url: "<%= ENV.fetch("COMPANY_REVIEW_URL", "https://g.page/r/fielddesk-demo/review") %>"
+  review_request_delay_hours: 2

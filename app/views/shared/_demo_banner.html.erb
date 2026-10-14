@@ -1,0 +1,5 @@
+<% if Demo.enabled? %>
+  <div class="relative z-20 bg-amber-400 px-4 py-1.5 text-center text-xs font-medium text-amber-950">
+    Demo: fictional company and customers · payments are <%= PaymentGateways.current.simulated? ? "simulated" : "in Stripe test mode" %> · text messages are not sent, they land in the SMS outbox
+  </div>
+<% end %>

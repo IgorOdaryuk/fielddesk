@@ -21,6 +21,8 @@ class Job < ApplicationRecord
   belongs_to :technician, class_name: "User", optional: true
   belongs_to :created_by, class_name: "User", optional: true
   has_many :notes, -> { chronological }, class_name: "JobNote", dependent: :destroy
+  has_one :invoice, dependent: :restrict_with_error
+  has_many :outbound_messages, dependent: :nullify
   has_many_attached :photos
 
   enum :status, { unscheduled: 0, scheduled: 1, en_route: 2, in_progress: 3, completed: 4, canceled: 5 }, validate: true
@@ -36,6 +38,7 @@ class Job < ApplicationRecord
   validate :photos_are_images
 
   before_save :stamp_field_times
+  after_update_commit :notify_customer, if: -> { saved_change_to_status? }
 
   scope :open, -> { where(status: %i[unscheduled scheduled en_route in_progress]) }
   scope :on_day, ->(date) { where(scheduled_at: date.in_time_zone.all_day) }
@@ -81,6 +84,13 @@ class Job < ApplicationRecord
   end
 
   private
+    def notify_customer
+      case status
+      when "en_route" then Messaging.notify(:on_my_way, job: self)
+      when "completed" then Messaging.notify(:review_request, job: self, send_at: Company.review_request_delay.from_now)
+      end
+    end
+
     def stamp_field_times
       return unless will_save_change_to_status?
 

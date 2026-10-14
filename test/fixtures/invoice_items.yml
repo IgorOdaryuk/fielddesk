@@ -1,0 +1,15 @@
+bob_visit:
+  invoice: bob_sent
+  kind: <%= InvoiceItem.kinds[:fee] %>
+  description: Diagnostic visit
+  quantity: 1
+  unit_price_cents: 8900
+  taxable: false
+
+bob_part:
+  invoice: bob_sent
+  kind: <%= InvoiceItem.kinds[:part] %>
+  description: Thermal fuse
+  quantity: 1
+  unit_price_cents: 10000
+  taxable: true

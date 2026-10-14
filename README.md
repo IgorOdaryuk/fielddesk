@@ -6,7 +6,7 @@ Dispatch and job management for small field-service companies — appliance repa
 
 Built with Rails 8, Hotwire and PostgreSQL. No React, no Redis, no external auth service.
 
-**Live demo: https://web-production-6fd1a.up.railway.app** — sign in as `dispatch@fielddesk.demo` / `demo-password` (more accounts below). The demo sleeps when idle, so the first page can take a few seconds.
+**Live demo: https://web-production-6fd1a.up.railway.app** — sign in as `dispatch@fielddesk.demo` / `demo-password` (more accounts below), or **create your own sandbox company** from the sign-in page. The demo sleeps when idle, so the first page can take a few seconds.
 
 ![Dashboard](docs/screenshots/dashboard.png)
 
@@ -28,9 +28,20 @@ What I practiced along the way:
 
 ## What it does
 
+**Many companies, one app**
+- Every company is an isolated account: its own team, customers, jobs, invoices, texts and audit log
+- Anyone can sign up a sandbox company; sample data loads in the background and the dashboard fills in live
+- Company settings: name, phone, sales tax, payment terms, review link, online booking on/off
+
+**Online booking for customers**
+- A public page per company (`/book/sunshine-appliance-repair`) with two-hour arrival windows for the next six days
+- A window is open only when a technician is free; the job goes to the least busy one that day
+- Returning customers are recognized by phone; the customer gets a confirmation text; the dispatcher sees the booking appear without reloading
+
 **For the office (admin, dispatcher)**
 - Dashboard: today's route, who is in the field right now, jobs waiting to be scheduled, technician load, lead sources for the last 30 days
-- Schedule board: one column per technician, jobs placed on a time grid
+- Schedule board: one column per technician. Drag a job to another technician or time, or drag a waiting job onto the board. Drops snap to 15 minutes; double-booking is refused
+- Live updates: any change to a job refreshes every open schedule and dashboard in that company (Turbo 8 morphing over Action Cable)
 - Customers with several service addresses, gate codes and access notes, and full job history
 - Jobs with a status workflow: `unscheduled → scheduled → en route → in progress → completed`, plus cancel with a required reason
 - Search customers by name, by a phone number in any format, or by email
@@ -55,6 +66,10 @@ What I practiced along the way:
 **For the admin**
 - Team management: add people, set roles and calendar colors, reset passwords, deactivate (never delete, so history keeps its authors)
 - Audit log of every sign-in, failed sign-in, denied access and data change, with who, when, what changed and from which IP
+
+| Online booking | Booking confirmed | Sandbox sign-up | Sample data loading live |
+|---|---|---|---|
+| ![Booking](docs/screenshots/booking.png) | ![Confirmed](docs/screenshots/booking-confirmed.png) | ![Sign-up](docs/screenshots/signup.png) | ![Loading](docs/screenshots/sandbox-loading.png) |
 
 | Schedule | Job | Audit log |
 |---|---|---|
@@ -90,6 +105,8 @@ Everything around the provider is the same code in both modes: invoice math, pay
 | Customer PII | Phone and email are encrypted at rest with Active Record Encryption. Deterministic mode keeps exact-match search working. Production refuses to boot without real keys. |
 | Logs | Phone, email, password and token params are filtered from request logs. The audit log writes `[FILTERED]` for encrypted columns and password digests, so it never becomes a second copy of PII. |
 | Payment links | 24+ character random token per invoice; draft invoices are not reachable; payment endpoints are rate-limited; gateway charges are recorded once even if a webhook is delivered twice. |
+| Tenant isolation | `acts_as_tenant` scopes every query to the current account and checks that associations stay inside it. A query with no account set raises instead of returning everyone's rows. Sign-in, password reset, payment links and webhooks cross accounts only inside explicit `without_tenant` blocks. Covered by isolation tests. |
+| Public forms | Booking and sign-up are rate-limited; the booking form has a honeypot field. |
 | Authorization | Pundit policies on every action, enforced by `verify_authorized`. Policy scopes keep technicians inside their own jobs. Denied attempts land in the audit log. |
 | Static analysis | Brakeman and bundler-audit run in CI. |
 
@@ -98,6 +115,8 @@ Everything around the provider is the same code in both modes: invoice math, pay
 - **State machine without a gem.** `Job::TRANSITIONS` is a plain hash; `Job#allowed_transitions_for(user)` combines it with the role, so the buttons in the UI and the server-side check come from the same rule.
 - **Auditing as a concern.** `Auditable` hooks into `after_*_commit`, so a rolled-back transaction never leaves a phantom log entry. The acting user and IP come from `Current`.
 - **Job numbers from a Postgres sequence** (`J-10001`, …), so two dispatchers booking in the same second never collide. That's why the schema lives in `db/structure.sql`.
+- **Tenancy with a safety net.** `require_tenant` is on, so forgetting to set the account is a crash in tests, not a data leak in production. Turbo streams are named per account, so one company's changes never ping another's screens.
+- **Availability from the schedule itself.** `BookingSlots` loads the week's jobs once and checks overlaps in Ruby; the same overlap rule (`Job.overlapping`) guards drag and drop, the job form and online booking.
 - **Providers behind small adapters.** `PaymentGateways.current` and `SmsProviders.current` pick the implementation from ENV. Real SMS can never go out while demo mode is on.
 - **Texts are records first, deliveries second.** `Messaging.notify` saves an `OutboundMessage`, then `DeliverMessageJob` sends it, so a slow provider never blocks the technician's tap, scheduled texts survive restarts, and a review request for a job canceled in the meantime is skipped.
 - **Money in integer cents**, tax rounded once per invoice.
@@ -120,8 +139,9 @@ Open http://localhost:3000 and sign in with any demo account. The password for a
 | Admin | `admin@fielddesk.demo` |
 | Dispatcher | `dispatch@fielddesk.demo` |
 | Technician | `mike@fielddesk.demo`, `sarah@…`, `james@…`, `luis@…` |
+| A second company, to see isolation | `admin.bayside@fielddesk.demo` (Bayside Appliance Pros) |
 
-The demo data is generated by Faker: a fictional repair company in the Tampa Bay area. Phone numbers use the 555-01XX range reserved for fiction. `RESEED=1 bin/rails db:seed` rebuilds it.
+The demo data is generated by Faker: two fictional repair companies in the Tampa Bay area. Phone numbers use the 555-01XX range reserved for fiction. `RESEED=1 bin/rails db:seed` rebuilds it.
 
 ## Tests
 
@@ -149,8 +169,12 @@ Generate the three encryption values with `bin/rails db:encryption:init`. Option
 
 - [x] Invoices with line items, PDF export, and payment links (simulated or Stripe Checkout)
 - [x] Customer texts: on my way, review request, invoice link, receipt (outbox or Twilio)
-- [ ] Drag-and-drop rescheduling on the schedule board (Stimulus)
-- [ ] Live status updates on the dashboard over Turbo Streams
+- [x] Drag-and-drop rescheduling on the schedule board (Stimulus)
+- [x] Live updates on the dashboard and schedule over Turbo Streams
+- [x] Multi-tenant accounts with self-serve sandbox sign-up
+- [x] Online booking with technician availability
+- [ ] REST API with per-account keys and webhooks
+- [ ] Reports: revenue by technician and lead source, average ticket
 - [ ] CSV import of customers and job history
 
 ## License

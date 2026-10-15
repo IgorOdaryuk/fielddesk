@@ -1,4 +1,5 @@
 class UsersController < ApplicationController
+  before_action :keep_shared_demo_intact, except: :index
   before_action :set_user, only: %i[ edit update ]
 
   def index

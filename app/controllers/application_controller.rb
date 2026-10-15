@@ -41,6 +41,13 @@ class ApplicationController < ActionController::Base
       false
     end
 
+    def keep_shared_demo_intact
+      return unless current_account&.shared_demo?
+
+      redirect_back_or_to root_path, alert: "The shared demo keeps its team and settings as they are, so everyone can sign in. " \
+                                            "Create your own sandbox company to try this."
+    end
+
     def forbidden
       AuditLog.record(action: "access.denied", changes: { "path" => [ nil, request.path ] }) if current_user
       respond_to do |format|

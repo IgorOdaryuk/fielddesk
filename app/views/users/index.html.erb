@@ -3,7 +3,9 @@
   <%= link_to "Add person", new_user_path, class: "btn-primary" %>
 <% end %>
 
-<% if current_account.sandbox? %>
+<% if current_account.shared_demo? %>
+  <p class="mb-4 rounded-lg bg-brand-50 px-4 py-2.5 text-sm text-slate-700 ring-1 ring-brand-100">Shared demo: everyone signs in with the password <code>demo-password</code>, so the team here can't be changed. <%= link_to "Create your own sandbox", new_signup_path, class: "font-medium text-brand-600" %> to add people, reset passwords or deactivate someone.</p>
+<% elsif current_account.sandbox? %>
   <p class="mb-4 rounded-lg bg-brand-50 px-4 py-2.5 text-sm text-slate-700 ring-1 ring-brand-100">Sandbox: sample team members sign in with the password <code>demo-password</code>. Open a private window and sign in as a technician to see their app.</p>
 <% end %>
 <div class="card overflow-x-auto">

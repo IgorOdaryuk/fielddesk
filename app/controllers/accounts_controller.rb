@@ -1,5 +1,6 @@
 # Company settings, for admins.
 class AccountsController < ApplicationController
+  before_action :keep_shared_demo_intact, only: :update
   before_action :set_account
 
   def edit

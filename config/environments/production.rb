@@ -1,4 +1,5 @@
 require "active_support/core_ext/integer/time"
+require_relative "../../lib/edge_client_ip"
 
 Rails.application.configure do
   # Settings specified here will take precedence over those in config/application.rb.
@@ -29,6 +30,9 @@ Rails.application.configure do
 
   # Force all access to the app over SSL, use Strict-Transport-Security, and use secure cookies.
   config.force_ssl = true
+
+  # Railway sets RAILWAY_ENVIRONMENT; see lib/edge_client_ip.rb.
+  config.middleware.insert_before ActionDispatch::RemoteIp, EdgeClientIp if ENV["RAILWAY_ENVIRONMENT"].present?
 
   # Skip http-to-https redirect for the default health check endpoint.
   # config.ssl_options = { redirect: { exclude: ->(request) { request.path == "/up" } } }

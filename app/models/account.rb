@@ -35,6 +35,10 @@ class Account < ApplicationRecord
 
   def to_param = slug
 
+  # The seeded companies everyone signs into with the published demo password.
+  # Their team and settings stay as seeded, so one visitor can't lock out the next.
+  def shared_demo? = Demo.enabled? && !sandbox?
+
   private
     def review_url_is_web_link
       return if review_url.blank?

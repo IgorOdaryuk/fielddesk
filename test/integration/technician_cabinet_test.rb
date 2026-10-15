@@ -35,6 +35,15 @@ class TechnicianCabinetTest < ActionDispatch::IntegrationTest
     assert_equal 1, @job.reload.photos.count
   end
 
+  test "a job holds at most MAX_PHOTOS photos" do
+    photos = Array.new(Job::MAX_PHOTOS + 1) { fixture_file_upload("washer.png", "image/png") }
+    post job_photos_path(@job), params: { photos: photos }
+    assert_equal 0, @job.reload.photos.count
+
+    post job_photos_path(@job), params: { photos: photos.first(Job::MAX_PHOTOS) }
+    assert_equal Job::MAX_PHOTOS, @job.reload.photos.count
+  end
+
   test "non-image uploads are rejected" do
     file = fixture_file_upload("notes.txt", "text/plain")
     post job_photos_path(@job), params: { photos: [ file ] }

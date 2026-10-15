@@ -6,7 +6,7 @@ Dispatch and job management for small field-service companies — appliance repa
 
 Built with Rails 8, Hotwire and PostgreSQL. No React, no Redis, no external auth service.
 
-**Live demo: https://web-production-6fd1a.up.railway.app** — sign in as `dispatch@fielddesk.demo` / `demo-password` (more accounts below), or **create your own sandbox company** from the sign-in page. The demo sleeps when idle, so the first page can take a few seconds.
+**Live demo: https://web-production-6fd1a.up.railway.app** — sign in as `dispatch@fielddesk.demo` / `demo-password` (more accounts below), or **create your own sandbox company** from the sign-in page. The shared demo's team and company settings are read-only so nobody can lock out the next visitor; a sandbox lets you change everything. The demo sleeps when idle, so the first page can take a few seconds.
 
 ![Dashboard](docs/screenshots/dashboard.png)
 

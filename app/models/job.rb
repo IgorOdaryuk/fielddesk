@@ -5,6 +5,8 @@ class Job < ApplicationRecord
 
   APPLIANCES = [ "Refrigerator", "Washer", "Dryer", "Dishwasher", "Oven", "Range", "Cooktop",
                  "Microwave", "Freezer", "Ice maker", "Wine cooler", "Garbage disposal" ].freeze
+  # Enough for any repair visit; keeps one job from filling the disk.
+  MAX_PHOTOS = 20
 
   # Who may move a job where. Technicians only drive their own field visit;
   # everything else (booking, rescheduling, canceling) is a dispatcher call.
@@ -131,6 +133,8 @@ class Job < ApplicationRecord
     end
 
     def photos_are_images
+      errors.add(:photos, "are limited to #{MAX_PHOTOS} per job") if photos.size > MAX_PHOTOS
+
       photos.each do |photo|
         next if photo.content_type.to_s.start_with?("image/") && photo.byte_size <= 15.megabytes
 

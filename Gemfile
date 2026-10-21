@@ -66,7 +66,7 @@ group :test do
 end
 
 gem "pundit", "~> 2.5"
-gem "pagy", "~> 43.7"
+gem "pagy", "~> 43.8"
 gem "faker", "~> 3.8"
 
 gem "prawn", "~> 2.4"

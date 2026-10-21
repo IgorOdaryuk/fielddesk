@@ -69,7 +69,7 @@ gem "pundit", "~> 2.5"
 gem "pagy", "~> 43.7"
 gem "faker", "~> 3.8"
 
-gem "prawn", "~> 2.4"
+gem "prawn", "~> 2.5"
 gem "prawn-table", "~> 0.2.2"
 gem "stripe", "~> 20.0"
 
